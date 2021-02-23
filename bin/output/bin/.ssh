@@ -1,0 +1,1 @@
+cd /Users/vn_666/Desktop/project/smxsms-website-service/bin && zip -r output.zip ../* -x "../node_modules/*" -x "../public/*"

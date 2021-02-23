@@ -1,0 +1,1 @@
+global.domain = "www.smxsdezx.cn";
