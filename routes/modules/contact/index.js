@@ -19,11 +19,12 @@ router.post("/query", (req, res) => {
 });
 
 router.post("/update", (req, res) => {
-	let { id, phone, email, address, postCode } = req.body;
+	// let { id, phone, email, address, postCode } = req.body;
+	let { id, phone, address, postCode } = req.body;
 	const whereStr = { "id": id };
 	const updateStr = { $set: {
 		"phone": phone,
-		"email": email,
+		// "email": email,
 		"address": address,
 		"postCode": postCode
 	}};

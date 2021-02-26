@@ -75,7 +75,8 @@ const whiteList = [
 	"/api/login/login",
 	"/api/login/getSlideCode",
 	"/api/login/ipCheck",
-	"/api/login/loginTest"
+	"/api/login/loginTest",
+	"/api/download"
 ];
 
 module.exports = whiteList;

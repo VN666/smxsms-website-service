@@ -13,33 +13,9 @@ const db = new Dao();
 router.post("/add", (req, res) => {
 	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, category, tempSrc } = req.body;
 
-	picSrc.forEach((src) => content = content.replace(RegExp(src, "g"), src.replace(/temp/g, category)));
-	picSrc = picSrc.map((src) => src.replace(RegExp(src, "g"), src.replace(/temp/g), category));
-	tempSrc = tempSrc.map((src) => path.basename(src));
-	picSrc = picSrc.map((src) => path.basename(src));
-	const addSrc = picSrc.filter((src) => !tempSrc.includes(src));
-	const removeSrc = tempSrc.filter((src) => !picSrc.includes(src));
-	
-	addSrc.forEach((src) => {
-		const sourceUrl = path.join("public/imgs/temp", path.basename(src));
-		const destUrl = path.join("public/imgs", category, path.basename(src));
-		fs.rename(sourceUrl, destUrl, async (err) => {
-			if (err) res.status(200).send({ msg: "图片添加失败", code: 500 });
-		});
-	});
+	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
 
-	removeSrc.forEach((src) => {
-		const targetUrl = path.join("public/imgs", category, path.basename(src));
-		if (fs.existsSync(targetUrl)) {
-			fs.unlink(targetUrl, (err) => {
-				if (err) res.status(200).send({ msg: "图片删除失败", code: 500 });
-			});
-		}
-	});	
-
-	picSrc = picSrc.map((src) => `https://${global.domain}/public/imgs/${category}/${src}`);
-
-	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: content, picSrc: picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
+	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: assets.content, picSrc: assets.picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
 		id: uuidv1(), views: 0
 	}
 	db.insertOne("education_research", insertStr).then((success) => {
@@ -156,31 +132,7 @@ router.post("/queryById", async (req, res) => {
 router.post("/edit", (req, res) => {
 	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, category, tempSrc, tempFileSrc } = req.body;
 
-	picSrc.forEach((src) => content = content.replace(RegExp(src, "g"), src.replace(/temp/g, category)));
-	picSrc = picSrc.map((src) => src.replace(RegExp(src, "g"), src.replace(/temp/g), category));
-	tempSrc = tempSrc.map((src) => path.basename(src));
-	picSrc = picSrc.map((src) => path.basename(src));
-	const addSrc = picSrc.filter((src) => !tempSrc.includes(src));
-	const removeSrc = tempSrc.filter((src) => !picSrc.includes(src));
-	
-	addSrc.forEach((src) => {
-		const sourceUrl = path.join("public/imgs/temp", path.basename(src));
-		const destUrl = path.join("public/imgs", category, path.basename(src));
-		fs.rename(sourceUrl, destUrl, async (err) => {
-			if (err) res.status(200).send({ msg: "图片添加失败", code: 500 });
-		});
-	});
-
-	removeSrc.forEach((src) => {
-		const targetUrl = path.join("public/imgs", category, path.basename(src));
-		if (fs.existsSync(targetUrl)) {
-			fs.unlink(targetUrl, (err) => {
-				if (err) res.status(200).send({ msg: "图片删除失败", code: 500 });
-			});
-		}
-	});	
-
-	picSrc = picSrc.map((src) => `https://${global.domain}/public/imgs/${category}/${src}`);
+	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
 
 	const addFileSrc = fileListSrc.filter((src) => !tempFileSrc.includes(src));
 	const removeFileSrc = tempFileSrc.filter((src) => !fileListSrc.includes(src));
@@ -203,8 +155,8 @@ router.post("/edit", (req, res) => {
 		"publisher": publisher,		
 		"timecreate": timecreate,		
 		"isTop": isTop,
-		"content": content,
-		"picSrc": picSrc,
+		"content": assets.content,
+		"picSrc": assets.picSrc,
 		"fileList": fileList,
 		"fileListSrc": fileListSrc,
 		"checked": checked,

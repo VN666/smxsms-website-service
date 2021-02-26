@@ -33,39 +33,14 @@ router.post("/edit", (req, res) => {
 	let { id, content, picSrc, headSrc, category, tempSrc } = req.body;
 	
 	picSrc.push(headSrc);
-	picSrc.forEach((src) => content = content.replace(RegExp(src, "g"), src.replace(/temp/g, category)));
-	picSrc = picSrc.map((src) => src.replace(RegExp(src, "g"), src.replace(/temp/g), category));
-	tempSrc = tempSrc.map((src) => path.basename(src));
-	picSrc = picSrc.map((src) => path.basename(src));
-	const addSrc = picSrc.filter((src) => !tempSrc.includes(src));
-	const removeSrc = tempSrc.filter((src) => !picSrc.includes(src));
-	
-	addSrc.forEach((src) => {
-		if (src === headSrc) return true;
-		const sourceUrl = path.join("public/imgs/temp", path.basename(src));
-		const destUrl = path.join("public/imgs", category, path.basename(src));
-		fs.rename(sourceUrl, destUrl, async (err) => {
-			if (err) res.status(200).send({ msg: "图片添加失败", code: 500 });
-		});
-	});
-
-	removeSrc.forEach((src) => {
-		const targetUrl = path.join("public/imgs", category, path.basename(src));
-		if (fs.existsSync(targetUrl)) {
-			fs.unlink(targetUrl, (err) => {
-				if (err) res.status(200).send({ msg: "图片删除失败", code: 500 });
-			});
-		}
-	});	
+	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
 	headSrc = headSrc.replace(/temp/g, category);
-
-	picSrc = picSrc.map((src) => `https://${global.domain}/public/imgs/${category}/${src}`);
 
 	const whereStr = { "id": id };
 	const updateStr = { $set: {
 		"timecreate": moment().format("YYYY-MM-DD HH:mm:ss"),
-		"content": content,
-		"picSrc": picSrc,
+		"content": assets.content,
+		"picSrc": assets.picSrc,
 		"headSrc": headSrc
 	}};
 	db.updateOne("about_proverb", whereStr, updateStr).then((success) => {
