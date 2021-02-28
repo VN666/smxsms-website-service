@@ -9,16 +9,15 @@ const utils = require("../../../tools/utils.js");
 const fs = require("fs");
 const db = new Dao();
 
-/** 学校领导-添加 */
-router.post("/add", (req, res) => {
-	let { headSrc, picSrc, name, job, introduction, order, category, publisher } = req.body;
-	headSrc = headSrc.replace(/temp/g, category);
-	picSrc[0] = headSrc;
-	const sourceUrl = path.join("public/imgs/temp", path.basename(headSrc));
-	const destUrl = path.join("public/imgs", category, path.basename(headSrc));
-	fs.rename(sourceUrl, destUrl, async (err) => {
-		if (err) res.status(200).send({ msg: "图片添加失败", code: 500 });
-	});
+/** 关于二中-名师风采-添加 */
+router.post("/add", async (req, res) => {
+	let { headSrc, picSrc, name, job, introduction, order, removeSrc, publisher } = req.body;
+	
+	try { 
+		await utils.removeAssets(removeSrc);
+	} catch (e) { 
+		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
+	}
 	const insertStr = {
 		"publisher": publisher,
 		"headSrc": headSrc,
@@ -31,22 +30,12 @@ router.post("/add", (req, res) => {
 		"order": order,
 		"id": uuidv1()
 	};
-
 	db.insertOne("about_outstanding", insertStr).then((success) => {
-		res.status(200).send({
-			msg: "添加成功",
-			code: 200,
-			result: success
-		});
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		});
-	});
+		res.status(200).send({ msg: "添加成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 学校领导-查询列表 */
+/** 关于二中-名师风采-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "order": -1 };
@@ -61,25 +50,14 @@ router.post("/queryList", async (req, res) => {
 	});
 });
 
-/** 学校领导-编辑 */
-router.post("/edit", (req, res) => {
-	let { id, headSrc, picSrc, name, job, introduction, tempSrc, category, publisher } = req.body;
+/** 关于二中-名师风采-编辑 */
+router.post("/edit", async (req, res) => {
+	let { id, headSrc, picSrc, name, job, introduction, removeSrc, publisher } = req.body;
 
-	if (headSrc !== tempSrc) {		
-		const targetUrl = path.join("public/imgs", category, path.basename(tempSrc));
-		if (fs.existsSync(targetUrl)) {
-			fs.unlink(targetUrl, (err) => {
-				if (err) res.status(200).send({ msg: "删除失败", code: 500 });
-			});
-		}
-		
-		headSrc = headSrc.replace(/temp/g, category);
-		picSrc[0] = headSrc;
-		const sourceUrl = path.join("public/imgs/temp", path.basename(headSrc));
-		const destUrl = path.join("public/imgs", category, path.basename(headSrc));
-		fs.rename(sourceUrl, destUrl, async (err) => {
-			if (err) res.status(200).send({ msg: "图片添加失败", code: 500 });
-		});
+	try {
+		await utils.removeAssets(removeSrc);
+	} catch (e) {
+		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
 	}
 
 	const whereStr = { "id": id };
@@ -95,20 +73,11 @@ router.post("/edit", (req, res) => {
 
 	}};
 	db.updateOne("about_outstanding", whereStr, updateStr).then((success) => {
-		res.status(200).send({
-			msg: "保存成功",
-			code: 200,
-			result: success
-		});
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		})
-	});
+		res.status(200).send({ msg: "保存成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 学校领导-分页查询 */
+/** 关于二中-名师风采-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	let whereStr = {};
@@ -128,32 +97,21 @@ router.post("/query", async (req, res) => {
 });
 
 /** 新闻快讯-删除 */
-router.post("/del", (req, res) => {
+router.post("/del", async (req, res) => {
 	let { id, picSrc } = req.body;
 	const delStr = { "id": id };
-	db.deleteOne("about_outstanding", delStr).then((success) => {
-		picSrc.forEach((item) => {
-			let target = utils.getAbsolutePath(item);
-			if (fs.existsSync(target)) {
-				fs.unlink(target, (err) => {
-					if (err) throw new Error("删除失败");
-				});
-			}
-		});
-		res.status(200).send({
-			msg: "删除成功",
-			code: 200,
-			result: success
-		});
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		});
-	});
+
+	db.deleteOne("about_outstanding", delStr).then(async (success) => {		
+		try {
+			await utils.removeAssets(picSrc);
+			res.status(200).send({ msg: "删除成功", code: 200, result: success });
+		} catch (e) {
+			res.status(200).send({ code: 500, msg: "图片删除失败", result: e.message })
+		}
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 学校领导-根据ID查询单条 */
+/** 关于二中-名师风采-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { addViews, id } = req.body;
 	const findStr = { "id": id };
@@ -172,7 +130,7 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 学校领导-移动 */
+/** 关于二中-名师风采-移动 */
 router.post("/move", (req, res) => {
 	const { fromId, fromOrder, toId, toOrder } = req.body;
 	fromFindStr = { "id": fromId };

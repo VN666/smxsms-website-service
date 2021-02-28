@@ -10,7 +10,8 @@ let category = "";
 
 const storage = multer.diskStorage({
 	destination: function (req, file, cb) {
-		cb(null, "public/files/temp");
+		const target = utils.getAssetsRoute("files");
+		cb(null, target);
 	},
 	filename: function (req, file, cb) {
 		cb(null, utils.getFileHashName(file.originalname));
@@ -19,21 +20,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.post("/", upload.array("file"), function(req, res, next) {
-	category = req.body.category;
-	let files = req.files;
-	responseUrls = [];
-	files.forEach((item) => {
-		let sourceUrl = path.join(`public/files/temp`, item.filename);
-		let destUrl = path.join(`public/files`, category, item.filename);
-		fs.rename(sourceUrl, destUrl, (err) => {
-			if (err) res.status(200).send({ code: 500, msg: "文件上传失败" });
-		});
-		let responseUrl = "https://" + global.domain + `/public/files/${category}/` + item.filename;
-		responseUrls.push(responseUrl);	
-	});
-	res.status(200).send({ code: 200, msg: "上传成功", url: responseUrls });
-    
+router.post("/", upload.single("file"), function(req, res, next) {
+	let file = req.file;
+	const callbackUrl = `https://${global.domain}/${file.path}`;
+	res.status(200).send({ code: 200, msg: "上传成功", url: callbackUrl });
 });
 
 module.exports = router;

@@ -10,26 +10,21 @@ const fs = require("fs");
 const db = new Dao();
 
 /** 通知公告-添加 */
-router.post("/add", (req, res) => {
-	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, category, tempSrc } = req.body;
+router.post("/add", async (req, res) => {
+	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, removeSrc } = req.body;
+	
+	try { 
+		await utils.removeAssets(removeSrc);
+	} catch (e) { 
+		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
+	}
 
-	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
-
-	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: assets.content, picSrc: assets.picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
+	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: content, picSrc: picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
 		id: uuidv1(), views: 0
 	}
 	db.insertOne("news_notice", insertStr).then((success) => {
-		res.status(200).send({
-			msg: "保存成功",
-			code: 200,
-			result: success
-		});
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		});
-	});
+		res.status(200).send({ msg: "保存成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
 /** 通知公告-分页查询 */
@@ -88,25 +83,18 @@ router.post("/changeIsTop", (req, res) => {
 });
 
 /** 通知公告-删除 */
-router.post("/del", (req, res) => {
+router.post("/del", async (req, res) => {
 	let { id, fileListSrc, picSrc } = req.body;
 	const delStr = { "id": id };
-	db.deleteOne("news_notice", delStr).then((success) => {
-		[...fileListSrc, ...picSrc].forEach((item) => {
-			let target = utils.getAbsolutePath(item);
-			if (fs.existsSync(target)) {
-				fs.unlink(target, (err) => {
-					if (err) throw new Error("删除失败");
-				});
-			}
-		});
-		res.status(200).send({ msg: "删除成功", code: 200, result: success });
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		});
-	});
+	db.deleteOne("news_notice", delStr).then(async (success) => {
+		try {
+			await utils.removeAssets([...fileListSrc, ...picSrc]);
+			res.status(200).send({ msg: "删除成功", code: 200, result: success });
+		} catch (e) {
+			res.status(200).send({ code: 500, msg: "图片删除失败", result: e.message })
+		}
+		
+	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
 /** 通知公告-根据ID查询单条 */
@@ -129,22 +117,14 @@ router.post("/queryById", async (req, res) => {
 });
 
 /** 新闻快讯-编辑 */
-router.post("/edit", (req, res) => {
-	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, category, tempSrc, tempFileSrc } = req.body;
+router.post("/edit", async (req, res) => {
+	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, removeSrc } = req.body;
 
-	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
-
-	const addFileSrc = fileListSrc.filter((src) => !tempFileSrc.includes(src));
-	const removeFileSrc = tempFileSrc.filter((src) => !fileListSrc.includes(src));
-
-	removeFileSrc.forEach((src) => {
-		const targetUrl = path.join("public/files", category, path.basename(src));
-		if (fs.existsSync(targetUrl)) {
-			fs.unlink(targetUrl, (err) => {
-				if (err) res.status(200).send({ msg: "文件删除失败", code: 500 });
-			})
-		}
-	})
+	try {
+		await utils.removeAssets(removeSrc);
+	} catch (e) {
+		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
+	}
 
 	let whereStr = { "id": id };
 
@@ -155,8 +135,8 @@ router.post("/edit", (req, res) => {
 		"publisher": publisher,		
 		"timecreate": timecreate,		
 		"isTop": isTop,
-		"content": assets.content,
-		"picSrc": assets.picSrc,
+		"content": content,
+		"picSrc": picSrc,
 		"fileList": fileList,
 		"fileListSrc": fileListSrc,
 		"checked": checked,
@@ -164,17 +144,8 @@ router.post("/edit", (req, res) => {
 	}};
 
 	db.updateOne("news_notice", whereStr, updateStr).then((success) => {
-		res.status(200).send({
-			msg: "保存成功",
-			code: 200,
-			result: success
-		})
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		})
-	});
+		res.status(200).send({ msg: "保存成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
 /** 通知公告-查询列表 */

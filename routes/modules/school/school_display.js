@@ -9,30 +9,25 @@ const fs = require("fs");
 
 const db = new Dao();
 
-/** 招生信息-添加 */
-router.post("/add", (req, res) => {
-	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, category, tempSrc } = req.body;
+/** 七彩校园-活动报道-添加 */
+router.post("/add", async (req, res) => {
+	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, removeSrc } = req.body;
+	
+	try { 
+		await utils.removeAssets(removeSrc);
+	} catch (e) { 
+		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
+	}
 
-	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
-
-	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: assets.content, picSrc: assets.picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
+	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: content, picSrc: picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
 		id: uuidv1(), views: 0
 	}
 	db.insertOne("school_display", insertStr).then((success) => {
-		res.status(200).send({
-			msg: "保存成功",
-			code: 200,
-			result: success
-		});
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		});
-	});
+		res.status(200).send({ msg: "保存成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 招生信息-分页查询 */
+/** 七彩校园-活动报道-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize, headline, author, department, startTime, endTime } = req.body;
 
@@ -64,7 +59,7 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 招生信息-置顶/取消 */
+/** 七彩校园-活动报道-置顶/取消 */
 router.post("/changeIsTop", (req, res) => {
 	let { id, isTop, timecreate } = req.body;	
 	let whereStr = { "id": id };
@@ -87,29 +82,22 @@ router.post("/changeIsTop", (req, res) => {
 	});
 });
 
-/** 招生信息-删除 */
-router.post("/del", (req, res) => {
+/** 七彩校园-活动报道-删除 */
+router.post("/del", async (req, res) => {
 	let { id, fileListSrc, picSrc } = req.body;
 	const delStr = { "id": id };
-	db.deleteOne("school_display", delStr).then((success) => {
-		[...fileListSrc, ...picSrc].forEach((item) => {
-			let target = utils.getAbsolutePath(item);
-			if (fs.existsSync(target)) {
-				fs.unlink(target, (err) => {
-					if (err) throw new Error("删除失败");
-				});
-			}
-		});
-		res.status(200).send({ msg: "删除成功", code: 200, result: success });
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		});
-	});
+	db.deleteOne("school_display", delStr).then(async (success) => {
+		try {
+			await utils.removeAssets([...fileListSrc, ...picSrc]);
+			res.status(200).send({ msg: "删除成功", code: 200, result: success });
+		} catch (e) {
+			res.status(200).send({ code: 500, msg: "图片删除失败", result: e.message })
+		}
+		
+	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 招生信息-根据ID查询单条 */
+/** 七彩校园-活动报道-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { id, addViews } = req.body;
 	const findStr = { "id": id };
@@ -128,23 +116,15 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 招生信息-编辑 */
-router.post("/edit", (req, res) => {
-	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, category, tempSrc, tempFileSrc } = req.body;
+/** 七彩校园-活动报道-编辑 */
+router.post("/edit", async (req, res) => {
+	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, removeSrc } = req.body;
 
-	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
-
-	const addFileSrc = fileListSrc.filter((src) => !tempFileSrc.includes(src));
-	const removeFileSrc = tempFileSrc.filter((src) => !fileListSrc.includes(src));
-
-	removeFileSrc.forEach((src) => {
-		const targetUrl = path.join("public/files", category, path.basename(src));
-		if (fs.existsSync(targetUrl)) {
-			fs.unlink(targetUrl, (err) => {
-				if (err) res.status(200).send({ msg: "文件删除失败", code: 500 });
-			})
-		}
-	})
+	try {
+		await utils.removeAssets(removeSrc);
+	} catch (e) {
+		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
+	}
 
 	let whereStr = { "id": id };
 
@@ -155,8 +135,8 @@ router.post("/edit", (req, res) => {
 		"publisher": publisher,		
 		"timecreate": timecreate,		
 		"isTop": isTop,
-		"content": assets.content,
-		"picSrc": assets.picSrc,
+		"content": content,
+		"picSrc": picSrc,
 		"fileList": fileList,
 		"fileListSrc": fileListSrc,
 		"checked": checked,
@@ -164,20 +144,11 @@ router.post("/edit", (req, res) => {
 	}};
 
 	db.updateOne("school_display", whereStr, updateStr).then((success) => {
-		res.status(200).send({
-			msg: "保存成功",
-			code: 200,
-			result: success
-		})
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		})
-	});
+		res.status(200).send({ msg: "保存成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 招生信息-查询列表 */
+/** 七彩校园-活动报道-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "isTop": -1, "createtime": -1, "topTime": -1 };

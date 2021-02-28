@@ -9,32 +9,25 @@ const utils = require("../../../tools/utils.js");
 const fs = require("fs");
 const db = new Dao();
 
-/** 新闻快讯-添加 */
-router.post("/add", (req, res) => {
-	let { headline, subTitle, author, timecreate, publisher, origin, originDes, isTop, content, checked, views, picSrc, category, tempSrc } = req.body;
-
-	/** 参数校验区域 */
-	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
+/** 新闻动态-新闻快讯-添加 */
+router.post("/add", async (req, res) => {
+	let { headline, department, subTitle, origin, originDes, author, publisher, timecreate, isTop, content, picSrc, checked, removeSrc } = req.body;
+	
+	try { 
+		await utils.removeAssets(removeSrc);
+	} catch (e) { 
+		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
+	}
 
 	const insertStr = { 
-		headline: headline, subTitle: subTitle, author: author,	timecreate: timecreate,	publisher: publisher, origin: origin, originDes: originDes,	isTop: isTop, topTime: timecreate, content: assets.content, checked: checked, id: uuidv1(), views: 0, picSrc: assets.picSrc
+		headline: headline, subTitle: subTitle, author: author,	timecreate: timecreate,	publisher: publisher, origin: origin, originDes: originDes,	isTop: isTop, topTime: timecreate, content: content, checked: checked, id: uuidv1(), views: 0, picSrc: picSrc
 	};
-
 	db.insertOne("news_campus", insertStr).then((success) => {
-		res.status(200).send({
-			msg: "保存成功",
-			code: 200,
-			result: success
-		});
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		});
-	});
+		res.status(200).send({ msg: "保存成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 新闻快讯-分页查询 */
+/** 新闻动态-新闻快讯-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize, headline, author, publisher, startTime, endTime } = req.body;
 	/** 参数校验区域 */
@@ -65,7 +58,7 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 新闻快讯-查询列表 */
+/** 新闻动态-新闻快讯-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "isTop": -1, "createtime": -1, "topTime": -1 };
@@ -80,7 +73,7 @@ router.post("/queryList", async (req, res) => {
 	});
 });
 
-/** 新闻快讯-根据ID查询单条 */
+/** 新闻动态-新闻快讯-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { id, addViews } = req.body;
 	const findStr = { "id": id };
@@ -99,7 +92,7 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 新闻快讯-置顶/取消 */
+/** 新闻动态-新闻快讯-置顶/取消 */
 router.post("/changeIsTop", (req, res) => {
 	let { id, isTop, timecreate } = req.body;	
 	let whereStr = { "id": id };
@@ -122,13 +115,18 @@ router.post("/changeIsTop", (req, res) => {
 	});
 });
 
-/** 新闻快讯-编辑 */
-router.post("/edit", (req, res) => {
-	let { headline, subTitle, author, timecreate, publisher, origin, originDes, isTop, content, checked, id, topTime, picSrc, tempSrc, category} = req.body;
+/** 新闻动态-新闻快讯-编辑 */
+router.post("/edit", async (req, res) => {
+	let { headline, subTitle, author, timecreate, publisher, origin, originDes, isTop, content, checked, id, topTime, picSrc, removeSrc} = req.body;
 
-	const assets = utils.assetsHandle(content, picSrc, tempSrc, category);
-	
+	try {
+		await utils.removeAssets(removeSrc);
+	} catch (e) {
+		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
+	}
+
 	let whereStr = { "id": id };
+
 	let updateStr = { $set: {
 		"headline": headline,
 		"subTitle": subTitle,
@@ -138,50 +136,29 @@ router.post("/edit", (req, res) => {
 		"origin": origin,
 		"originDes": originDes,
 		"isTop": isTop,
-		"content": assets.content,
+		"content": content,
 		"checked": checked,
 		"topTime": isTop ? topTime : timecreate,
-		"picSrc": assets.picSrc
+		"picSrc": picSrc
 	}};
 
 	db.updateOne("news_campus", whereStr, updateStr).then((success) => {
-		res.status(200).send({
-			msg: "保存成功",
-			code: 200,
-			result: success
-		})
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		})
-	});
+		res.status(200).send({ msg: "保存成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 新闻快讯-删除 */
-router.post("/del", (req, res) => {
+/** 新闻动态-新闻快讯-删除 */
+router.post("/del", async (req, res) => {
 	let { id, picSrc } = req.body;
 	const delStr = { "id": id };
-	db.deleteOne("news_campus", delStr).then((success) => {
-		picSrc.forEach((item) => {
-			let target = utils.getAbsolutePath(item);
-			if (fs.existsSync(target)) {
-				fs.unlink(target, (err) => {
-					if (err) throw new Error("删除失败");
-				});
-			}
-		});
-		res.status(200).send({
-			msg: "删除成功",
-			code: 200,
-			result: success
-		});
-	}).catch((err) => {
-		res.status(200).send({
-			msg: err,
-			code: 500
-		});
-	});
+	db.deleteOne("news_campus", delStr).then(async (success) => {
+		try {
+			await utils.removeAssets(picSrc);
+			res.status(200).send({ msg: "删除成功", code: 200, result: success });
+		} catch (e) {
+			res.status(200).send({ code: 500, msg: "图片删除失败", result: e.message })
+		}		
+	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
 module.exports = router;

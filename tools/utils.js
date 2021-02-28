@@ -5,6 +5,15 @@ const Dao = require("./DAO.js");
 const fs = require("fs");
 const db = new Dao();
 
+module.exports.getAssetsRoute = function (route) {
+	const targetRoute = path.join("public/assets", route, moment().format("YYYY-MM"));
+	if (fs.existsSync(targetRoute)) return targetRoute
+	else {
+		fs.mkdirSync(targetRoute); 	
+		return targetRoute
+	}
+}
+
 module.exports.getAbsolutePath = function (url) {
 	const tempUrl = url.split("//")[1];
 	return tempUrl.substring(tempUrl.indexOf("/") + 1, tempUrl.length);
@@ -13,6 +22,21 @@ module.exports.getAbsolutePath = function (url) {
 module.exports.getFileHashName = function (filename) {
 	const index = filename.lastIndexOf(".");
 	return filename.substr(0, index) + "-oss-" + moment().format("YYYYMMDDHHmmss") + "-" + uuidv1().replace(/-/g, "") + filename.substring(index, filename.length);
+}
+
+module.exports.removeAssets = function (removeSrc) {
+	
+	return new Promise((resolve, reject) => {
+		removeSrc.forEach((src) => {
+			src = src.match(/public(\S*)/gi)[0];
+			if (fs.existsSync(src)) {
+				fs.unlink(src, (err) => {
+					reject(err);
+				});
+			}
+		});
+		resolve();
+	});
 }
 
 module.exports.assetsHandle = function (content, picSrc, tempSrc, category) {
