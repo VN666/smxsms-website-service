@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-/** 校园风貌-添加  */
+/** 关于二中-校园风貌-添加  */
 router.post("/getTotal", (req, res) => {
 	db.getTotal("about_landscape").then((len) => {
 		res.status(200).send({
@@ -37,42 +37,16 @@ router.post("/getTotal", (req, res) => {
 	});
 });
 
-/** 校园风貌-上传 */
-router.post("/upload", upload.single("file"), (req, res) => {
-	const file = req.file;
-	const category = req.body.category;
-	const order = req.body.order; 
-	const name = req.body.name;
-
-	const sourceUrl = path.join("public/imgs", file.filename);
-	const destUrl = path.join("public/imgs", category, file.filename);
-	const remoteUrl = "https://" + global.domain + "/public/imgs/" + category + "/" +  file.filename;
-	fs.rename(sourceUrl, destUrl, async (err) => {
-		if (err) throw err;
-		const insertStr = {
-			id: uuidv1(),
-			picSrc: remoteUrl,
-			timecreate: moment().format("YYYY-MM-DD HH:mm:ss"),
-			order: order,
-			name: name,
-			views: 0
-		}
-		db.insertOne("about_landscape", insertStr).then((success) => {
-			res.status(200).send({
-				msg: "上传成功",
-				code: 200,
-				result: success
-			});
-		}).catch((err) => {
-			res.status(200).send({
-				msg: err,
-				code: 500
-			});
-		});
-	})
+/** 关于二中-校园风貌-上传 */
+router.post("/add", (req, res) => {
+	const { name, picSrc, order } = req.body;
+	const insertStr = { id: uuidv1(), picSrc: picSrc, timecreate: moment().format("YYYY-MM-DD HH:mm:ss"), order: order, name: name, views: 0 };	
+	db.insertOne("about_landscape", insertStr).then((success) => {
+		res.status(200).send({ msg: "上传成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 校园风貌-查询 */
+/** 关于二中-校园风貌-查询 */
 router.post("/query", async (req, res) => {
 	const { pageNo, pageSize } = req.body;
 	const findStr = {};
@@ -90,26 +64,22 @@ router.post("/query", async (req, res) => {
 	});
 });
 
-/** 校园风貌-删除 */
+/** 关于二中-校园风貌-删除 */
 router.post("/del", (req, res) => {
 	const { id, picSrc } = req.body;
 	const delStr = { "id": id};
-	const target = utils.getAbsolutePath(picSrc);
-	db.deleteOne("about_landscape", delStr).then((success) => {
-		if (fs.existsSync(target)) {
-			fs.unlink(target, (err) => {
-				if (err) res.status(200).send({ msg: err, code: 500 });
-				else res.status(200).send({ msg: "删除成功", code: 200, result: "" });
-			});
-		} else {
-			res.status(200).send({ msg: "删除失败", code: 500 });
+
+	db.deleteOne("about_landscape", delStr).then(async (success) => {
+		try {
+			await utils.removeAssets(picSrc);
+			res.status(200).send({ msg: "删除成功", code: 200, result: success });
+		} catch (err) {
+			res.status(200).send({ code: 500, msg: "图片删除失败", result: err.message })
 		}
-	}).catch((err) => {
-		res.status(200).send({ msg: err, code: 500 });
-	});
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 校园风貌-移动 */
+/** 关于二中-校园风貌-移动 */
 router.post("/move", (req, res) => {
 	const { fromId, fromOrder, toId, toOrder } = req.body;
 	fromFindStr = { "id": fromId };
@@ -126,7 +96,7 @@ router.post("/move", (req, res) => {
 	});
 });
 
-/** 校园风貌-编辑 */
+/** 关于二中-校园风貌-编辑 */
 router.post("/edit", (req, res) => {
 	const { id, name } = req.body;
 	const findStr = { "id": id };
@@ -138,7 +108,7 @@ router.post("/edit", (req, res) => {
 	});
 });
 
-/** 校园风貌-根据ID查询单条 */
+/** 关于二中-校园风貌-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { addViews, id } = req.body;
 	const findStr = { "id": id };

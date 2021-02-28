@@ -10,17 +10,6 @@ const utils = require("../../../tools/utils.js");
 
 const db = new Dao();
 
-/** multer配置 */
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, "public/imgs/");
-	},
-	filename: function (req, file, cb) {
-		cb(null, utils.getFileHashName(file.originalname));
-	}
-});
-const upload = multer({ storage: storage });
-
 /** 封面图片-查询数量  */
 router.post("/getTotal", (req, res) => {
 	db.getTotal("bg_imgs").then((len) => {
@@ -38,35 +27,12 @@ router.post("/getTotal", (req, res) => {
 });
 
 /** 封面图片-上传 */
-router.post("/upload", upload.single("file"), (req, res) => {
-	const file = req.file;
-	const category = req.body.category;
-	const order = req.body.order; 
-	const sourceUrl = path.join("public/imgs", file.filename);
-	const destUrl = path.join("public/imgs", category, file.filename);
-	const remoteUrl = "https://" + global.domain + "/public/imgs/" + category + "/" +  file.filename;
-	fs.rename(sourceUrl, destUrl, async (err) => {
-		if (err) throw err;
-		const insertStr = {
-			id: uuidv1(),
-			picSrc: remoteUrl,
-			timecreate: moment().format("YYYY-MM-DD HH:mm:ss"),
-			order: order,
-			filename: req.file.filename
-		}
-		db.insertOne("bg_imgs", insertStr).then((success) => {
-			res.status(200).send({
-				msg: "上传成功",
-				code: 200,
-				result: success
-			});
-		}).catch((err) => {
-			res.status(200).send({
-				msg: err,
-				code: 500
-			});
-		});
-	})
+router.post("/add", (req, res) => {
+	const { order, picSrc } = req.body;
+	const insertStr = { id: uuidv1(), picSrc: picSrc, timecreate: moment().format("YYYY-MM-DD HH:mm:ss"), order: order };
+	db.insertOne("bg_imgs", insertStr).then((success) => {
+		res.status(200).send({ msg: "添加成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
 /** 封面图片-查询 */
@@ -91,19 +57,14 @@ router.post("/query", async (req, res) => {
 router.post("/del", (req, res) => {
 	const { id, picSrc } = req.body;
 	const delStr = { "id": id};
-	const target = utils.getAbsolutePath(picSrc);
-	db.deleteOne("bg_imgs", delStr).then((success) => {
-		if (fs.existsSync(target)) {
-			fs.unlink(target, (err) => {
-				if (err) res.status(200).send({ msg: err, code: 500 });
-				else res.status(200).send({ msg: "删除成功", code: 200, result: "" });
-			});
-		} else {
-			res.status(200).send({ msg: "删除失败", code: 500 });
+	db.deleteOne("bg_imgs", delStr).then(async (success) => {		
+		try {
+			await utils.removeAssets(picSrc);
+			res.status(200).send({ msg: "删除成功", code: 200, result: success });
+		} catch (e) {
+			res.status(200).send({ code: 500, msg: "图片删除失败", result: e.message })
 		}
-	}).catch((err) => {
-		res.status(200).send({ msg: err, code: 500 });
-	});
+	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
 /** 封面图片-移动 */
