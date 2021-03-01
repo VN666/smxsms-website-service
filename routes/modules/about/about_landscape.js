@@ -10,16 +10,7 @@ const utils = require("../../../tools/utils.js");
 
 const db = new Dao();
 
-/** multer配置 */
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, "public/imgs/");
-	},
-	filename: function (req, file, cb) {
-		cb(null, utils.getFileHashName(file.originalname));
-	}
-});
-const upload = multer({ storage: storage });
+
 
 /** 关于二中-校园风貌-添加  */
 router.post("/getTotal", (req, res) => {
