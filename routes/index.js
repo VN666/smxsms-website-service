@@ -17,6 +17,7 @@ const service = require("./modules/service/index.js");
 const login = require("./modules/login/index.js");
 const user = require("./modules/user/index.js");
 const download = require("./modules/download/index.js");
+const system = require("./modules/system/index.js");
 
 app.use("*", (req, res, next) => {
 	if (whiteList.includes(req.baseUrl)) {
@@ -71,6 +72,8 @@ app.use("/login", login);
 app.use("/user", user);
 
 app.use("/download", download);
+
+app.use("/system", system);
 
 const getToken = (data, expiresTime) => {
 	return jwt.sign({

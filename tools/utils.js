@@ -3,6 +3,8 @@ const moment = require("moment");
 const path = require("path");
 const Dao = require("./DAO.js");
 const fs = require("fs");
+const jwt = require("jsonwebtoken");
+const CryptoJS = require("crypto-js");
 const db = new Dao();
 
 module.exports.getAssetsRoute = function (route) {
@@ -24,64 +26,30 @@ module.exports.getFileHashName = function (filename) {
 	return filename.substr(0, index) + "-oss-" + moment().format("YYYYMMDDHHmmss") + "-" + uuidv1().replace(/-/g, "") + filename.substring(index, filename.length);
 }
 
-module.exports.removeAssets = function (removeSrc) {
-	
+module.exports.removeAssets = function (removeSrc) {	
 	return new Promise((resolve, reject) => {
 		removeSrc.forEach((src) => {
 			src = src.match(/public(\S*)/gi)[0];
-			if (fs.existsSync(src)) {
-				fs.unlink(src, (err) => {
-					reject(err);
-				});
-			}
+			if (fs.existsSync(src)) fs.unlink(src, (err) =>reject(err));			
 		});
 		resolve();
 	});
 }
 
-module.exports.assetsHandle = function (content, picSrc, tempSrc, category) {
-	picSrc.forEach((src) => content = content.replace(RegExp(src, "g"), src.replace(/temp/g, category)));
-	
-	picSrc = picSrc.map((src) => src.replace(RegExp(src, "g"), src.replace(/temp/g), category));
-	tempSrc = tempSrc.map((src) => path.basename(src));
-	picSrc = picSrc.map((src) => path.basename(src));
-	const addSrc = picSrc.filter((src) => !tempSrc.includes(src));
-	const removeSrc = tempSrc.filter((src) => !picSrc.includes(src));	
-	addSrc.forEach((src) => {
-		if (src.includes(".mp4")) {
-			const sourceUrl = path.join("public/video/temp", path.basename(src));
-			const destUrl = path.join("public/video", category, path.basename(src));
-			fs.rename(sourceUrl, destUrl, async (err) => {
-				if (err) res.status(200).send({ msg: "图片添加失败", code: 500 });
-			});			
-		} else {
-			const sourceUrl = path.join("public/imgs/temp", path.basename(src));
-			const destUrl = path.join("public/imgs", category, path.basename(src));
-			fs.rename(sourceUrl, destUrl, async (err) => {
-				if (err) res.status(200).send({ msg: "图片添加失败", code: 500 });
-			});
-		}		
-	});
-	removeSrc.forEach((src) => {
-		if (src.includes(".mp4")) {
-			const targetUrl = path.join("public/video", category, path.basename(src));
-			if (fs.existsSync(targetUrl)) {
-				fs.unlink(targetUrl, (err) => {
-					if (err) res.status(200).send({ msg: "图片删除失败", code: 500 });
-				});
-			}
-		} else {
-			const targetUrl = path.join("public/imgs", category, path.basename(src));
-			if (fs.existsSync(targetUrl)) {
-				fs.unlink(targetUrl, (err) => {
-					if (err) res.status(200).send({ msg: "图片删除失败", code: 500 });
-				});
-			}
-		}		
-	});
-	picSrc = picSrc.map((src) => src.includes(".mp4") ? `https://${global.domain}/public/video/${category}/${src}` :`https://${global.domain}/public/imgs/${category}/${src}`);
-	return {
-		picSrc: picSrc,
-		content: content
-	}
+module.exports.getJwtCode = function (token) {
+	return jwt.verify(token, global.salt, (err, code) => code);
 }
+
+const treeDataFilter = (treeData, codes, id = "code", children = "children") => {
+	return treeData.filter((node) => {
+		if (node[children] && codes.includes(node[id])) node[children] = treeDataFilter(node[children], codes, id, children);
+		return codes.includes(node[id]);
+	})
+};
+
+module.exports.encodeBase64 = (words) => {
+	return CryptoJS.SHA256(words + global.salt2).toString();
+}
+
+module.exports.treeDataFilter = treeDataFilter;
+
