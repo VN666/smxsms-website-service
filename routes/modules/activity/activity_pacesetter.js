@@ -9,7 +9,7 @@ const utils = require("../../../tools/utils.js");
 const fs = require("fs");
 const db = new Dao();
 
-/** 关于二中-名师风采-添加 */
+/** 德育活动-德育标兵-添加 */
 router.post("/add", async (req, res) => {
 	let { headSrc, picSrc, name, job, introduction, order, removeSrc, publisher } = req.body;
 	
@@ -30,16 +30,16 @@ router.post("/add", async (req, res) => {
 		"order": order,
 		"id": uuidv1()
 	};
-	db.insertOne("about_outstanding", insertStr).then((success) => {
+	db.insertOne("activity_pacesetter", insertStr).then((success) => {
 		res.status(200).send({ msg: "添加成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-名师风采-查询列表 */
+/** 德育活动-德育标兵-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "order": -1 };
-	await Promise.all([db.findByPage("about_outstanding", {}, {"introduction": 0}, sortStr, pageNo, pageSize), db.getTotal("about_outstanding")]).then((array) => {
+	await Promise.all([db.findByPage("activity_pacesetter", {}, {"introduction": 0}, sortStr, pageNo, pageSize), db.getTotal("activity_pacesetter")]).then((array) => {
 		res.status(200).send({
 			msg: "查询成功",
 			code: 200,
@@ -50,7 +50,7 @@ router.post("/queryList", async (req, res) => {
 	});
 });
 
-/** 关于二中-名师风采-编辑 */
+/** 德育活动-德育标兵-编辑 */
 router.post("/edit", async (req, res) => {
 	let { id, headSrc, picSrc, name, job, introduction, removeSrc, publisher } = req.body;
 
@@ -72,12 +72,12 @@ router.post("/edit", async (req, res) => {
 		"id": id,
 
 	}};
-	db.updateOne("about_outstanding", whereStr, updateStr).then((success) => {
+	db.updateOne("activity_pacesetter", whereStr, updateStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-名师风采-分页查询 */
+/** 德育活动-德育标兵-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	let whereStr = {};
@@ -85,7 +85,7 @@ router.post("/query", async (req, res) => {
 	const sortStr = { "order": -1 };
 	const limitStr = {};
 	
-	await Promise.all([db.findByPage("about_outstanding", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("about_outstanding")]).then((array) => {
+	await Promise.all([db.findByPage("activity_pacesetter", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("activity_pacesetter")]).then((array) => {
 		res.status(200).send({
 			msg: "查询成功",
 			code: 200,
@@ -96,12 +96,12 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 新闻快讯-删除 */
+/** 德育活动-德育标兵-删除 */
 router.post("/del", async (req, res) => {
 	let { id, picSrc } = req.body;
 	const delStr = { "id": id };
 
-	db.deleteOne("about_outstanding", delStr).then(async (success) => {		
+	db.deleteOne("activity_pacesetter", delStr).then(async (success) => {		
 		try {
 			await utils.removeAssets(picSrc);
 			res.status(200).send({ msg: "删除成功", code: 200, result: success });
@@ -111,15 +111,15 @@ router.post("/del", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-名师风采-根据ID查询单条 */
+/** 德育活动-德育标兵-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { addViews, id } = req.body;
 	const findStr = { "id": id };
-	let res1 = await db.find("about_outstanding", findStr).catch((err) => {
+	let res1 = await db.find("activity_pacesetter", findStr).catch((err) => {
 		res.status(200).send({ msg: err, code: 500});
 	});
 	if (addViews) {
-		let res2 = await db.addViews("about_outstanding", findStr).catch((err) => {
+		let res2 = await db.addViews("activity_pacesetter", findStr).catch((err) => {
 			res.status(200).send({ msg: err, code: 500});
 		});
 	}
@@ -130,7 +130,7 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 关于二中-名师风采-移动 */
+/** 德育活动-德育标兵-移动 */
 router.post("/move", (req, res) => {
 	const { fromId, fromOrder, toId, toOrder } = req.body;
 	fromFindStr = { "id": fromId };
@@ -138,8 +138,8 @@ router.post("/move", (req, res) => {
 	toFindStr = { "id": toId };
 	toUpdateStr = { $set: { "order": fromOrder }};
 	
-	db.updateOne("about_outstanding", fromFindStr, fromUpdateStr).then((move) => {
-		db.updateOne("about_outstanding", toFindStr, toUpdateStr).then((move2) => {
+	db.updateOne("activity_pacesetter", fromFindStr, fromUpdateStr).then((move) => {
+		db.updateOne("activity_pacesetter", toFindStr, toUpdateStr).then((move2) => {
 			res.status(200).send({ msg: "移动成功", code: 200 });
 		});
 	}).catch((err) => {

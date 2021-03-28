@@ -9,7 +9,7 @@ const utils = require("../../../tools/utils.js");
 const fs = require("fs");
 const db = new Dao();
 
-/** 关于二中-校长寄语-根据ID查询单条 */
+/** 二中概况-校长寄语-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { addViews } = req.body;
 	const findStr = {};
@@ -20,7 +20,7 @@ router.post("/queryById", async (req, res) => {
 	res.status(200).send({ msg: "查询成功", code: 200, data: res1[0] });
 });
 
-/** 关于二中-校长寄语-编辑 */
+/** 二中概况-校长寄语-编辑 */
 router.post("/edit", async (req, res) => {
 	let { id, content, picSrc, headSrc, removeSrc } = req.body;
 

@@ -9,7 +9,7 @@ const fs = require("fs");
 
 const db = new Dao();
 
-/** 为您服务-办事指南-添加 */
+/** 德育活动-德育规划-添加 */
 router.post("/add", async (req, res) => {
 	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, removeSrc } = req.body;
 	
@@ -22,12 +22,12 @@ router.post("/add", async (req, res) => {
 	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: content, picSrc: picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
 		id: uuidv1(), views: 0
 	}
-	db.insertOne("service_guide", insertStr).then((success) => {
+	db.insertOne("activity_planning", insertStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 为您服务-办事指南-分页查询 */
+/** 德育活动-德育规划-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize, headline, author, department, startTime, endTime } = req.body;
 
@@ -48,7 +48,7 @@ router.post("/query", async (req, res) => {
 	if (!department) delete whereStr.publisher;
 	if (!startTime && !endTime) delete whereStr.$and;
 	
-	await Promise.all([db.findByPage("service_guide", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("service_guide")]).then((array) => {
+	await Promise.all([db.findByPage("activity_planning", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("activity_planning")]).then((array) => {
 		res.status(200).send({
 			msg: "查询成功",
 			code: 200,
@@ -59,7 +59,7 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 为您服务-办事指南--置顶/取消 */
+/** 德育活动-德育规划-置顶/取消 */
 router.post("/changeIsTop", (req, res) => {
 	let { id, isTop, timecreate } = req.body;	
 	let whereStr = { "id": id };
@@ -68,7 +68,7 @@ router.post("/changeIsTop", (req, res) => {
 		"topTime": isTop ? moment().format("YYYY-MM-DD HH:mm:ss") : timecreate
 	}};
 
-	db.updateOne("service_guide", whereStr, updateStr).then((success) => {
+	db.updateOne("activity_planning", whereStr, updateStr).then((success) => {
 		res.status(200).send({
 			msg: isTop ? "置顶成功" : "取消置顶成功",
 			code: 200,
@@ -82,11 +82,11 @@ router.post("/changeIsTop", (req, res) => {
 	});
 });
 
-/** 为您服务-办事指南--删除 */
+/** 德育活动-德育规划-删除 */
 router.post("/del", async (req, res) => {
 	let { id, fileListSrc, picSrc } = req.body;
 	const delStr = { "id": id };
-	db.deleteOne("service_guide", delStr).then(async (success) => {
+	db.deleteOne("activity_planning", delStr).then(async (success) => {
 		try {
 			await utils.removeAssets([...fileListSrc, ...picSrc]);
 			res.status(200).send({ msg: "删除成功", code: 200, result: success });
@@ -97,15 +97,15 @@ router.post("/del", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 为您服务-办事指南--根据ID查询单条 */
+/** 德育活动-德育规划-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { id, addViews } = req.body;
 	const findStr = { "id": id };
-	let res1 = await db.find("service_guide", findStr).catch((err) => {
+	let res1 = await db.find("activity_planning", findStr).catch((err) => {
 		res.status(200).send({ msg: err, code: 500});
 	});
 	if (addViews) {
-		let res2 = await db.addViews("service_guide", findStr).catch((err) => {
+		let res2 = await db.addViews("activity_planning", findStr).catch((err) => {
 			res.status(200).send({ msg: err, code: 500});
 		});
 	}
@@ -116,7 +116,7 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 为您服务-办事指南--编辑 */
+/** 德育活动-德育规划-编辑 */
 router.post("/edit", async (req, res) => {
 	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, removeSrc } = req.body;
 
@@ -143,16 +143,16 @@ router.post("/edit", async (req, res) => {
 		"topTime": isTop ? topTime : timecreate
 	}};
 
-	db.updateOne("service_guide", whereStr, updateStr).then((success) => {
+	db.updateOne("activity_planning", whereStr, updateStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 为您服务-办事指南--查询列表 */
+/** 德育活动-德育规划-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "isTop": -1, "createtime": -1, "topTime": -1 };
-	await Promise.all([db.findByPage("service_guide", {}, {"content": 0}, sortStr, pageNo, pageSize), db.getTotal("service_guide")]).then((array) => {
+	await Promise.all([db.findByPage("activity_planning", {}, {"content": 0}, sortStr, pageNo, pageSize), db.getTotal("activity_planning")]).then((array) => {
 		res.status(200).send({
 			msg: "查询成功",
 			code: 200,

@@ -9,7 +9,7 @@ const utils = require("../../../tools/utils.js");
 const fs = require("fs");
 const db = new Dao();
 
-/** 关于二中-学校领导-添加 */
+/** 二中概况-领导风采-添加 */
 router.post("/add", async (req, res) => {
 	let { headSrc, picSrc, name, job, introduction, order, removeSrc, publisher } = req.body;
 	
@@ -37,7 +37,7 @@ router.post("/add", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-学校领导-查询列表 */
+/** 二中概况-领导风采-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "order": -1 };
@@ -52,7 +52,7 @@ router.post("/queryList", async (req, res) => {
 	});
 });
 
-/** 关于二中-学校领导-编辑 */
+/** 二中概况-领导风采-编辑 */
 router.post("/edit", async (req, res) => {
 	let { id, headSrc, picSrc, name, job, introduction, removeSrc, publisher } = req.body;
 	
@@ -78,7 +78,7 @@ router.post("/edit", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-学校领导-分页查询 */
+/** 二中概况-领导风采-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	let whereStr = {};
@@ -97,7 +97,7 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 关于二中-新闻快讯-删除 */
+/** 二中概况-领导风采-删除 */
 router.post("/del", (req, res) => {
 	let { id, picSrc } = req.body;
 	const delStr = { "id": id };
@@ -111,7 +111,7 @@ router.post("/del", (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-学校领导-根据ID查询单条 */
+/** 二中概况-领导风采-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { addViews, id } = req.body;
 	const findStr = { "id": id };
@@ -130,7 +130,7 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 关于二中-学校领导-移动 */
+/** 二中概况-领导风采-移动 */
 router.post("/move", (req, res) => {
 	const { fromId, fromOrder, toId, toOrder } = req.body;
 	fromFindStr = { "id": fromId };

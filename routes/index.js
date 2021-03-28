@@ -2,18 +2,26 @@ const express = require("express");
 const app = express();
 const jwt = require("jsonwebtoken");
 const whiteList = require("./whiteList.js");
+
+const about = require("./modules/about/index.js");
+const education = require("./modules/education/index.js");
+const activity = require("./modules/activity/index.js");
+const training = require("./modules/training/index.js");
+const service = require("./modules/service/index.js");
+
+
 const news = require("./modules/news/index.js");
 const upload = require("./modules/upload/index.js");
 const bg = require("./modules/bg/index.js");
 const contact = require("./modules/contact/index.js");
-const about = require("./modules/about/index.js");
+
 const group = require("./modules/group/index.js");
-const education = require("./modules/education/index.js");
+
 const student = require("./modules/student/index.js");
 const parent = require("./modules/parent/index.js");
-const school = require("./modules/school/index.js");
+
 const happy = require("./modules/happy/index.js");
-const service = require("./modules/service/index.js");
+
 const login = require("./modules/login/index.js");
 const user = require("./modules/user/index.js");
 const download = require("./modules/download/index.js");
@@ -43,6 +51,14 @@ app.use("*", (req, res, next) => {
 });
 
 
+app.use("/about", about);
+app.use("/education", education);
+app.use("/activity", activity);
+app.use("/training", training);
+app.use("/service", service);
+
+
+
 app.use("/news", news);
 
 app.use("/upload", upload);
@@ -51,21 +67,21 @@ app.use("/bg", bg);
 
 app.use("/contact", contact);
 
-app.use("/about", about);
+
 
 app.use("/group", group);
 
-app.use("/education", education);
+
 
 app.use("/student", student);
 
 app.use("/parent", parent);
 
-app.use("/school", school);
+
 
 app.use("/happy", happy);
 
-app.use("/service", service);
+
 
 app.use("/login", login);
 

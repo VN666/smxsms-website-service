@@ -10,7 +10,7 @@ const path = require("path");
 const fs = require("fs");
 const db = new Dao();
 
-/** 关于二中-学校简介-编辑 */
+/** 二中概况-学校简介-编辑 */
 router.post("/edit", async (req, res) => {
 	let { id, content, picSrc, removeSrc } = req.body;
 
@@ -31,7 +31,7 @@ router.post("/edit", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-学校简介-根据ID查询单条 */
+/** 二中概况-学校简介-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { addViews } = req.body;
 	const findStr = {};

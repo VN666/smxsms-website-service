@@ -9,7 +9,7 @@ const utils = require("../../../tools/utils.js");
 const fs = require("fs");
 const db = new Dao();
 
-/** 关于二中-内部机构-编辑 */
+/** 二中概况-办学理念-编辑 */
 router.post("/edit", async (req, res) => {
 	let { id, content, picSrc, removeSrc } = req.body;
 
@@ -25,18 +25,18 @@ router.post("/edit", async (req, res) => {
 		"content": content,
 		"picSrc": picSrc
 	}};
-	db.updateOne("about_organization", whereStr, updateStr).then((success) => {
+	db.updateOne("about_concept", whereStr, updateStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-内部机构-根据ID查询单条 */
+/** 二中概况-办学理念-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { addViews } = req.body;
 	const findStr = {};
-	let res1 = await db.find("about_organization", findStr).catch((err) => res.status(200).send({ msg: err.message, code: 500}));
+	let res1 = await db.find("about_concept", findStr).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 	if (addViews) {
-		let res2 = await db.addViews("about_organization", findStr).catch((err) => res.status(200).send({ msg: err.message, code: 500}));
+		let res2 = await db.addViews("about_concept", findStr).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 	}
 	res.status(200).send({ msg: "查询成功", code: 200, data: res1[0] });
 });

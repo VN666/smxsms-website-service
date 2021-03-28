@@ -9,7 +9,7 @@ const utils = require("../../../tools/utils.js");
 const fs = require("fs");
 const db = new Dao();
 
-/** 关于二中-学校荣誉-添加 */
+/** 二中概况-学校荣誉-添加 */
 router.post("/add", async (req, res) => {
 	let { headline, subTitle, author, timecreate, publisher, origin, originDes, isTop, content, checked, views, picSrc, removeSrc } = req.body;
 	
@@ -27,7 +27,7 @@ router.post("/add", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 关于二中-学校荣誉-分页查询 */
+/** 二中概况-学校荣誉-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize, headline, publisher, startTime, endTime } = req.body;
 
@@ -56,7 +56,7 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 关于二中-学校荣誉-查询列表 */
+/** 二中概况-学校荣誉-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "isTop": -1, "createtime": -1, "topTime": -1 };
@@ -71,7 +71,7 @@ router.post("/queryList", async (req, res) => {
 	});
 });
 
-/** 关于二中-学校荣誉-根据ID查询单条 */
+/** 二中概况-学校荣誉-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { id, addViews } = req.body;
 	const findStr = { "id": id };
@@ -90,7 +90,7 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 关于二中-学校荣誉-置顶/取消 */
+/** 二中概况-学校荣誉-置顶/取消 */
 router.post("/changeIsTop", (req, res) => {
 	let { id, isTop, timecreate } = req.body;	
 	let whereStr = { "id": id };
@@ -113,7 +113,7 @@ router.post("/changeIsTop", (req, res) => {
 	});
 });
 
-/** 关于二中-学校荣誉-编辑 */
+/** 二中概况-学校荣誉-编辑 */
 router.post("/edit", async (req, res) => {
 	let { headline, timecreate, publisher, isTop, content, checked, id, topTime, picSrc, removeSrc} = req.body;
 
@@ -141,7 +141,7 @@ router.post("/edit", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 关于二中-学校荣誉-删除 */
+/** 二中概况-学校荣誉-删除 */
 router.post("/del", async (req, res) => {
 	let { id, picSrc } = req.body;
 	const delStr = { "id": id };

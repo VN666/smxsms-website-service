@@ -135,49 +135,97 @@ const authMenu = [
 		icon: "el-icon-school",
 		children: [
 			{
-				title: "学校简介",
-				path: "profile-content",
-				code: "admin_about_profile"
-			},
-			{
-				title: "学校领导",
+				title: "领导风采",
 				path: "leader-list",
 				code: "admin_about_leader"
 			},
+			{
+				title: "学校简介",
+				path: "profile-content",
+				code: "admin_about_profile"
+			},		
+			{
+				title: "二中校史",
+				path: "concept-content",
+				code: "admin_about_concept"
+			},	
 			{
 				title: "校长寄语",
 				path: "proverb-content",
 				code: "admin_about_proverb"
 			},
 			{
-				title: "内部机构",
-				path: "organization-content",
-				code: "admin_about_organization"
-			},
-			{
-				title: "师资概况",
-				path: "team-content",
-				code: "admin_about_team"
-			},
-			{
-				title: "名师风采",
-				path: "outstanding-list",
-				code: "admin_about__outstanding"
-			},
-			{
 				title: "学校荣誉",
 				path: "honor-list",
 				code: "admin_about_honor"
+			}			
+		]
+	},
+	{
+		title: "教研动态",
+		code: "admin_education",
+		path: "admin-education",
+		icon: "el-icon-data-analysis"
+	},
+	{
+		title: "德育活动",
+		code: "admin_activity",
+		path: "admin-activity",
+		icon: "el-icon-orange",
+		children: [
+			{
+				title: "德育规划",
+				path: "planning-list",
+				code: "admin_activity_planning"
 			},
 			{
-				title: "二中校史",
-				path: "history-content",
-				code: "admin_about_history"
+				title: "德育标兵",
+				path: "pacesetter-list",
+				code: "admin_activity_pacesetter"
 			},
 			{
-				title: "校园风貌",
-				path: "landscape-list",
-				code: "admin_about_landscape"
+				title: "健康教育",
+				path: "health-list",
+				code: "admin_activity_health"
+			},
+			{
+				title: "班级文化",
+				path: "culture-list",
+				code: "admin_activity_culture"
+			},
+			{
+				title: "班主任专栏",
+				path: "teacher-list",
+				code: "admin_activity_teacher"
+			},
+			{
+				title: "体艺活动",
+				path: "gym-list",
+				code: "admin_activity_gym"
+			}
+		]
+	},
+	{
+		title: "校本研修",
+		code: "admin_training",
+		path: "admin-training",
+		icon: "el-icon-data-analysis"
+	},
+	{
+		title: "为您服务",
+		code: "admin_service",
+		path: "admin-service",
+		icon: "el-icon-help",
+		children: [
+			{
+				title: "后勤保障",
+				path: "guarantee-list",
+				code: "admin_service_guarantee"
+			},
+			{
+				title: "电教知识",
+				path: "computer-list",
+				code: "admin_service_computer"
 			}
 		]
 	},
@@ -233,44 +281,6 @@ const authMenu = [
 				title: "创先争优",
 				path: "excellent-list",
 				code: "admin_group_excellent"
-			}
-		]
-	},
-	{
-		title: "教学科研",
-		code: "admin_education",
-		path: "admin-education",
-		icon: "el-icon-data-analysis",
-		children: [
-			{
-				title: "教研动态",
-				path: "research-list",
-				code: "admin_education_research"
-			},
-			{
-				title: "教学案例",
-				path: "case-list",
-				code: "admin_education_case"
-			},
-			{
-				title: "教学反思",
-				path: "summary-list",
-				code: "admin_education_summary"
-			},
-			{
-				title: "教学课件",
-				path: "ppt-list",
-				code: "admin_education_ppt"
-			},
-			{
-				title: "试题集锦",
-				path: "paper-list",
-				code: "admin_education_paper"
-			},
-			{
-				title: "特色教育",
-				path: "feature-list",
-				code: "admin_education_feature"
 			}
 		]
 	},
@@ -331,19 +341,6 @@ const authMenu = [
 		]
 	},
 	{
-		title: "七彩校园",
-		code: "admin_school",
-		path: "admin-school",
-		icon: "el-icon-orange",
-		children: [
-			{
-				title: "活动报道",
-				path: "display-list",
-				code: "admin_school_display"
-			}
-		]
-	},
-	{
 		title: "幸福教育",
 		code: "admin_happy",
 		path: "admin-happy",
@@ -363,29 +360,6 @@ const authMenu = [
 				title: "幸福教育活动",
 				path: "exercise-list",
 				code: "admin_happy_exercise"
-			}
-		]
-	},
-	{
-		title: "为您服务",
-		code: "admin_service",
-		path: "admin-service",
-		icon: "el-icon-help",
-		children: [
-			{
-				title: "办事指南",
-				path: "guide-list",
-				code: "admin_service_guide"
-			},
-			{
-				title: "后勤保障",
-				path: "guarantee-list",
-				code: "admin_service_guarantee"
-			},
-			{
-				title: "电教知识",
-				path: "computer-list",
-				code: "admin_service_computer"
 			}
 		]
 	},
