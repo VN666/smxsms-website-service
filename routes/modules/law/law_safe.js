@@ -9,7 +9,7 @@ const fs = require("fs");
 
 const db = new Dao();
 
-/** 党团工会-工会活动-添加 */
+/** 二中安法-添加 */
 router.post("/add", async (req, res) => {
 	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, removeSrc } = req.body;
 	
@@ -22,12 +22,12 @@ router.post("/add", async (req, res) => {
 	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: content, picSrc: picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
 		id: uuidv1(), views: 0
 	}
-	db.insertOne("group_union", insertStr).then((success) => {
+	db.insertOne("law_safe", insertStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 党团工会-工会活动-分页查询 */
+/** 二中安法-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize, headline, author, department, startTime, endTime } = req.body;
 
@@ -48,7 +48,7 @@ router.post("/query", async (req, res) => {
 	if (!department) delete whereStr.publisher;
 	if (!startTime && !endTime) delete whereStr.$and;
 	
-	await Promise.all([db.findByPage("group_union", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("group_union")]).then((array) => {
+	await Promise.all([db.findByPage("law_safe", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("law_safe")]).then((array) => {
 		res.status(200).send({
 			msg: "查询成功",
 			code: 200,
@@ -59,7 +59,7 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 党团工会-工会活动-置顶/取消 */
+/** 二中安法-置顶/取消 */
 router.post("/changeIsTop", (req, res) => {
 	let { id, isTop, timecreate } = req.body;	
 	let whereStr = { "id": id };
@@ -68,7 +68,7 @@ router.post("/changeIsTop", (req, res) => {
 		"topTime": isTop ? moment().format("YYYY-MM-DD HH:mm:ss") : timecreate
 	}};
 
-	db.updateOne("group_union", whereStr, updateStr).then((success) => {
+	db.updateOne("law_safe", whereStr, updateStr).then((success) => {
 		res.status(200).send({
 			msg: isTop ? "置顶成功" : "取消置顶成功",
 			code: 200,
@@ -82,11 +82,11 @@ router.post("/changeIsTop", (req, res) => {
 	});
 });
 
-/** 党团工会-工会活动-删除 */
+/** 二中安法-删除 */
 router.post("/del", async (req, res) => {
 	let { id, fileListSrc, picSrc } = req.body;
 	const delStr = { "id": id };
-	db.deleteOne("group_union", delStr).then(async (success) => {
+	db.deleteOne("law_safe", delStr).then(async (success) => {
 		try {
 			await utils.removeAssets([...fileListSrc, ...picSrc]);
 			res.status(200).send({ msg: "删除成功", code: 200, result: success });
@@ -97,15 +97,15 @@ router.post("/del", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 党团工会-工会活动-根据ID查询单条 */
+/** 二中安法-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { id, addViews } = req.body;
 	const findStr = { "id": id };
-	let res1 = await db.find("group_union", findStr).catch((err) => {
+	let res1 = await db.find("law_safe", findStr).catch((err) => {
 		res.status(200).send({ msg: err, code: 500});
 	});
 	if (addViews) {
-		let res2 = await db.addViews("group_union", findStr).catch((err) => {
+		let res2 = await db.addViews("law_safe", findStr).catch((err) => {
 			res.status(200).send({ msg: err, code: 500});
 		});
 	}
@@ -116,7 +116,7 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 党团工会-工会活动-编辑 */
+/** 二中安法-编辑 */
 router.post("/edit", async (req, res) => {
 	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, removeSrc } = req.body;
 
@@ -143,16 +143,16 @@ router.post("/edit", async (req, res) => {
 		"topTime": isTop ? topTime : timecreate
 	}};
 
-	db.updateOne("group_union", whereStr, updateStr).then((success) => {
+	db.updateOne("law_safe", whereStr, updateStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 党团工会-工会活动-查询列表 */
+/** 二中安法-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "isTop": -1, "createtime": -1, "topTime": -1 };
-	await Promise.all([db.findByPage("group_union", {}, {"content": 0}, sortStr, pageNo, pageSize), db.getTotal("group_union")]).then((array) => {
+	await Promise.all([db.findByPage("law_safe", {}, {"content": 0}, sortStr, pageNo, pageSize), db.getTotal("law_safe")]).then((array) => {
 		res.status(200).send({
 			msg: "查询成功",
 			code: 200,

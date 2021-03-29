@@ -230,6 +230,24 @@ const authMenu = [
 		]
 	},
 	{
+		title: "二中团建",
+		code: "admin_group",
+		path: "admin-group",
+		icon: "el-icon-star-off",
+	},
+	{
+		title: "职工之家",
+		code: "admin_union",
+		path: "admin-union",
+		icon: "el-icon-star-off"
+	},
+	{
+		title: "二中安法",
+		code: "admin_law",
+		path: "admin-law",
+		icon: "el-icon-star-off"
+	},
+	{
 		title: "新闻动态",
 		code: "admin_news",
 		icon: "el-icon-notebook-2",
@@ -253,34 +271,6 @@ const authMenu = [
 				title: "招生信息",
 				path: "enroll-list",
 				code: "admin_news_enroll"
-			}
-		]
-	},
-	{
-		title: "党团工会",
-		code: "admin_group",
-		path: "admin-group",
-		icon: "el-icon-star-off",
-		children: [
-			{
-				title: "党建动态",
-				path: "party-list",
-				code: "admin_group_party"
-			},
-			{
-				title: "团建工作",
-				path: "ccyl-list",
-				code: "admin_group_ccyl"
-			},
-			{
-				title: "工会活动",
-				path: "union-list",
-				code: "admin_group_union"
-			},
-			{
-				title: "创先争优",
-				path: "excellent-list",
-				code: "admin_group_excellent"
 			}
 		]
 	},

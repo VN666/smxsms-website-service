@@ -9,7 +9,7 @@ const fs = require("fs");
 
 const db = new Dao();
 
-/** 党团工会-团建工作-添加 */
+/** 二中团建-添加 */
 router.post("/add", async (req, res) => {
 	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, removeSrc } = req.body;
 	
@@ -27,7 +27,7 @@ router.post("/add", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 党团工会-团建工作-分页查询 */
+/** 二中团建-分页查询 */
 router.post("/query", async (req, res) => {
 	let { pageNo, pageSize, headline, author, department, startTime, endTime } = req.body;
 
@@ -59,7 +59,7 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 党团工会-团建工作-置顶/取消 */
+/** 二中团建-置顶/取消 */
 router.post("/changeIsTop", (req, res) => {
 	let { id, isTop, timecreate } = req.body;	
 	let whereStr = { "id": id };
@@ -82,7 +82,7 @@ router.post("/changeIsTop", (req, res) => {
 	});
 });
 
-/** 党团工会-团建工作-删除 */
+/** 二中团建-删除 */
 router.post("/del", async (req, res) => {
 	let { id, fileListSrc, picSrc } = req.body;
 	const delStr = { "id": id };
@@ -97,7 +97,7 @@ router.post("/del", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 党团工会-团建工作-根据ID查询单条 */
+/** 二中团建-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { id, addViews } = req.body;
 	const findStr = { "id": id };
@@ -116,7 +116,7 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 党团工会-团建工作-编辑 */
+/** 二中团建-编辑 */
 router.post("/edit", async (req, res) => {
 	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, removeSrc } = req.body;
 
@@ -148,7 +148,7 @@ router.post("/edit", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 党团工会-团建工作-查询列表 */
+/** 二中团建-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "isTop": -1, "createtime": -1, "topTime": -1 };

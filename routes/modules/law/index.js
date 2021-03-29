@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
 
-const group_ccyl = require("./group_ccyl");
+const law_safe = require("./law_safe");
 
-app.use("/ccyl", group_ccyl);
+app.use("/safe", law_safe);
 
 module.exports = app;

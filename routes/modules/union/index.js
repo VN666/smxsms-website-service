@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
 
-const group_ccyl = require("./group_ccyl");
+const union_staff = require("./union_staff");
 
-app.use("/ccyl", group_ccyl);
+app.use("/staff", union_staff);
 
 module.exports = app;
