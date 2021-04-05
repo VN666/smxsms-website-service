@@ -36,8 +36,25 @@ module.exports.removeAssets = function (removeSrc) {
 	});
 }
 
+module.exports.notHasDelAuth = function (token, id, table) {	
+	return new Promise(async (resolve, reject) => {
+		const username = jwt.verify(token, global.salt, (err, code) => code).username;
+		const userDepartmentId = (await db.find("admin_user", { username: username }))[0].departmentId;
+		const publisherDepartmentId = (await db.find(table, {id: id}))[0].publisherDepartmentId;
+		
+		(publisherDepartmentId === userDepartmentId || userDepartmentId === 0) ? resolve(false) : resolve(true);
+	});
+}
+
 module.exports.getJwtCode = function (token) {
 	return jwt.verify(token, global.salt, (err, code) => code);
+}
+
+module.exports.getUserData = async (username) => {
+	return new Promise(async (resolve, reject) => {
+		const userData =  await db.find("admin_user", { username: username });
+		resolve(userData[0]);
+	});
 }
 
 const treeDataFilter = (treeData, codes, id = "code", children = "children") => {

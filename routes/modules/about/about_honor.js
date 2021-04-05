@@ -11,8 +11,13 @@ const db = new Dao();
 
 /** 二中概况-学校荣誉-添加 */
 router.post("/add", async (req, res) => {
-	let { headline, subTitle, author, timecreate, publisher, origin, originDes, isTop, content, checked, views, picSrc, removeSrc } = req.body;
+	let { headline, subTitle, author, timecreate, origin, originDes, isTop, content, checked, views, picSrc, removeSrc } = req.body;
 	
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+
 	try { 
 		await utils.removeAssets(removeSrc);
 	} catch (e) { 
@@ -20,7 +25,7 @@ router.post("/add", async (req, res) => {
 	}
 
 	const insertStr = { 
-		headline: headline,	timecreate: timecreate,	publisher: publisher, isTop: isTop, topTime: timecreate, content: content, checked: checked, id: uuidv1(), views: 0, picSrc: picSrc
+		headline: headline,	timecreate: timecreate,	publisher: publisher, isTop: isTop, topTime: timecreate, content: content, checked: checked, id: uuidv1(), views: 0, picSrc: picSrc, publisherDepartmentId: publisherDepartmentId, publisherDepartmentName: publisherDepartmentName
 	};
 	db.insertOne("about_honor", insertStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
@@ -115,7 +120,18 @@ router.post("/changeIsTop", (req, res) => {
 
 /** 二中概况-学校荣誉-编辑 */
 router.post("/edit", async (req, res) => {
-	let { headline, timecreate, publisher, isTop, content, checked, id, topTime, picSrc, removeSrc} = req.body;
+	let { headline, timecreate, isTop, content, checked, id, topTime, picSrc, removeSrc} = req.body;
+
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "about_honor");
+
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "编辑失败，没有权限", code: 500, result: {} });
+    	return;
+    } 
 
 	try {
 		await utils.removeAssets(removeSrc);
@@ -128,12 +144,14 @@ router.post("/edit", async (req, res) => {
 	let updateStr = { $set: {
 		"headline": headline,
 		"timecreate": timecreate,
-		"publisher": publisher,
 		"isTop": isTop,
 		"content": content,
 		"checked": checked,
 		"topTime": isTop ? topTime : timecreate,
-		"picSrc": picSrc
+		"picSrc": picSrc,
+		"publisher": publisher,
+		"publisherDepartmentId": publisherDepartmentId,
+		"publisherDepartmentName": publisherDepartmentName
 	}};
 
 	db.updateOne("about_honor", whereStr, updateStr).then((success) => {
@@ -145,6 +163,18 @@ router.post("/edit", async (req, res) => {
 router.post("/del", async (req, res) => {
 	let { id, picSrc } = req.body;
 	const delStr = { "id": id };
+
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "about_honor");
+
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "删除失败，没有权限", code: 500, result: {} });
+    	return;
+    }
+
 	db.deleteOne("about_honor", delStr).then(async (success) => {
 		try {
 			await utils.removeAssets(picSrc);

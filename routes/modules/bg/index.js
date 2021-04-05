@@ -27,9 +27,15 @@ router.post("/getTotal", (req, res) => {
 });
 
 /** 封面图片-上传 */
-router.post("/add", (req, res) => {
+router.post("/add", async (req, res) => {
 	const { order, picSrc } = req.body;
-	const insertStr = { id: uuidv1(), picSrc: picSrc, timecreate: moment().format("YYYY-MM-DD HH:mm:ss"), order: order };
+
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+
+	const insertStr = { id: uuidv1(), picSrc: picSrc, timecreate: moment().format("YYYY-MM-DD HH:mm:ss"), order: order, publisher: publisher, publisherDepartmentId: publisherDepartmentId, publisherDepartmentName: publisherDepartmentName };
 	db.insertOne("bg_imgs", insertStr).then((success) => {
 		res.status(200).send({ msg: "添加成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
@@ -53,10 +59,37 @@ router.post("/query", async (req, res) => {
 	});
 });
 
+/** 封面图片-查询 */
+router.post("/query2", async (req, res) => {
+	const { pageNo, pageSize } = req.body;
+	const findStr = {};
+	const limitStr = {};
+	const sortStr = { "order": -1 };
+
+	await Promise.all([db.findByPage("bg_imgs", findStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("bg_imgs")]).then((array) => {
+		res.status(200).send({
+			msg: "查询成功",
+			code: 200,
+			data: { list: array[0], total: array[1] }
+		});
+	}).catch((err) => {
+		res.status(200).send({ msg: err, code: 500 });
+	});
+});
+
 /** 封面图片-删除 */
-router.post("/del", (req, res) => {
+router.post("/del", async (req, res) => {
 	const { id, picSrc } = req.body;
 	const delStr = { "id": id};
+    
+    const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "bg_imgs");
+
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "删除失败，没有权限", code: 500, result: {} });
+    	return;
+    }    
+
 	db.deleteOne("bg_imgs", delStr).then(async (success) => {		
 		try {
 			await utils.removeAssets(picSrc);

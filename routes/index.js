@@ -9,22 +9,13 @@ const activity = require("./modules/activity/index.js");
 const training = require("./modules/training/index.js");
 const service = require("./modules/service/index.js");
 const group = require("./modules/group/index.js");
+const party = require("./modules/party/index.js");
 const union =  require("./modules/union/index.js");
+const establish = require("./modules/establish/index.js");
 const law = require("./modules/law/index.js");
-
-
-const news = require("./modules/news/index.js");
 const upload = require("./modules/upload/index.js");
 const bg = require("./modules/bg/index.js");
 const contact = require("./modules/contact/index.js");
-
-
-
-const student = require("./modules/student/index.js");
-const parent = require("./modules/parent/index.js");
-
-const happy = require("./modules/happy/index.js");
-
 const login = require("./modules/login/index.js");
 const user = require("./modules/user/index.js");
 const download = require("./modules/download/index.js");
@@ -53,47 +44,22 @@ app.use("*", (req, res, next) => {
 	}
 });
 
-
 app.use("/about", about);
 app.use("/education", education);
 app.use("/activity", activity);
 app.use("/training", training);
 app.use("/service", service);
 app.use("/group", group);
+app.use("/party", party);
 app.use("/union", union);
+app.use("/establish", establish);
 app.use("/law", law);
-
-
-app.use("/news", news);
-
 app.use("/upload", upload);
-
 app.use("/bg", bg);
-
 app.use("/contact", contact);
-
-
-
-
-
-
-
-app.use("/student", student);
-
-app.use("/parent", parent);
-
-
-
-app.use("/happy", happy);
-
-
-
 app.use("/login", login);
-
 app.use("/user", user);
-
 app.use("/download", download);
-
 app.use("/system", system);
 
 const getToken = (data, expiresTime) => {

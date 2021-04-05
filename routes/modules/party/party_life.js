@@ -9,46 +9,46 @@ const fs = require("fs");
 
 const db = new Dao();
 
-/** 家长学校-家教知识-添加 */
+/** 二中党建-组织生活-添加 */
 router.post("/add", async (req, res) => {
-	let { headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, removeSrc } = req.body;
-	
+	let { headline, author, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, removeSrc } = req.body;
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
 	try { 
 		await utils.removeAssets(removeSrc);
 	} catch (e) { 
 		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
 	}
 
-	const insertStr = {	headline: headline,	department: department,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: content, picSrc: picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
-		id: uuidv1(), views: 0
+	const insertStr = {	headline: headline,	author: author,	publisher: publisher, timecreate: timecreate, isTop: isTop,	topTime: timecreate, content: content, picSrc: picSrc, fileList: fileList, fileListSrc: fileListSrc, checked: checked,
+		id: uuidv1(), views: 0, publisherDepartmentId: publisherDepartmentId, publisherDepartmentName: publisherDepartmentName
 	}
-	db.insertOne("parent_knowledge", insertStr).then((success) => {
+	db.insertOne("party_life", insertStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));
 });
 
-/** 家长学校-家教知识-分页查询 */
+/** 二中党建-组织生活-分页查询 */
 router.post("/query", async (req, res) => {
-	let { pageNo, pageSize, headline, author, department, startTime, endTime } = req.body;
+	let { pageNo, pageSize, headline, author, startTime, endTime } = req.body;
 
 	/** 参数校验区域 */
 	const sortStr = { "isTop": -1, "createtime": -1, "topTime": -1 };
 	const limitStr = {};
 	const regHeadline = new RegExp(headline, "i");
 	const regAuthor = new RegExp(author, "i");
-	const regDepartment = new RegExp(department, "i");
 	const whereStr = {
 		"headline": { $regex: regHeadline },
 		"author": { $regex: regAuthor },
-		"department": { $regex: regDepartment },
 		"$and": [{"timecreate": { "$gte": startTime }}, {"timecreate": { "$lte": endTime }}]
 	};
 	if (!headline) delete whereStr.headline;
 	if (!author) delete whereStr.author;
-	if (!department) delete whereStr.publisher;
 	if (!startTime && !endTime) delete whereStr.$and;
 	
-	await Promise.all([db.findByPage("parent_knowledge", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("parent_knowledge")]).then((array) => {
+	await Promise.all([db.findByPage("party_life", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("party_life")]).then((array) => {
 		res.status(200).send({
 			msg: "查询成功",
 			code: 200,
@@ -59,7 +59,7 @@ router.post("/query", async (req, res) => {
 	});	
 });
 
-/** 家长学校-家教知识-置顶/取消 */
+/** 二中党建-组织生活-置顶/取消 */
 router.post("/changeIsTop", (req, res) => {
 	let { id, isTop, timecreate } = req.body;	
 	let whereStr = { "id": id };
@@ -68,7 +68,7 @@ router.post("/changeIsTop", (req, res) => {
 		"topTime": isTop ? moment().format("YYYY-MM-DD HH:mm:ss") : timecreate
 	}};
 
-	db.updateOne("parent_knowledge", whereStr, updateStr).then((success) => {
+	db.updateOne("party_life", whereStr, updateStr).then((success) => {
 		res.status(200).send({
 			msg: isTop ? "置顶成功" : "取消置顶成功",
 			code: 200,
@@ -82,11 +82,21 @@ router.post("/changeIsTop", (req, res) => {
 	});
 });
 
-/** 家长学校-家教知识-删除 */
+/** 二中党建-组织生活-删除 */
 router.post("/del", async (req, res) => {
 	let { id, fileListSrc, picSrc } = req.body;
 	const delStr = { "id": id };
-	db.deleteOne("parent_knowledge", delStr).then(async (success) => {
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "party_life");
+
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "删除失败，没有权限", code: 500, result: {} });
+    	return;
+    } 
+	db.deleteOne("party_life", delStr).then(async (success) => {
 		try {
 			await utils.removeAssets([...fileListSrc, ...picSrc]);
 			res.status(200).send({ msg: "删除成功", code: 200, result: success });
@@ -97,15 +107,15 @@ router.post("/del", async (req, res) => {
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 家长学校-家教知识-根据ID查询单条 */
+/** 二中党建-组织生活-根据ID查询单条 */
 router.post("/queryById", async (req, res) => {
 	let { id, addViews } = req.body;
 	const findStr = { "id": id };
-	let res1 = await db.find("parent_knowledge", findStr).catch((err) => {
+	let res1 = await db.find("party_life", findStr).catch((err) => {
 		res.status(200).send({ msg: err, code: 500});
 	});
 	if (addViews) {
-		let res2 = await db.addViews("parent_knowledge", findStr).catch((err) => {
+		let res2 = await db.addViews("party_life", findStr).catch((err) => {
 			res.status(200).send({ msg: err, code: 500});
 		});
 	}
@@ -116,10 +126,19 @@ router.post("/queryById", async (req, res) => {
 	});
 });
 
-/** 家长学校-家教知识-编辑 */
+/** 二中党建-组织生活-编辑 */
 router.post("/edit", async (req, res) => {
-	let { id, headline, department, author, publisher, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, removeSrc } = req.body;
+	let { id, headline, author, timecreate, isTop, content, picSrc, fileList, fileListSrc, checked, topTime, removeSrc } = req.body;
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "party_life");
 
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "编辑失败，没有权限", code: 500, result: {} });
+    	return;
+    }
 	try {
 		await utils.removeAssets(removeSrc);
 	} catch (e) {
@@ -130,9 +149,7 @@ router.post("/edit", async (req, res) => {
 
 	let updateStr = { $set: {
 		"headline": headline,
-		"department": department,
-		"author": author,
-		"publisher": publisher,		
+		"author": author,		
 		"timecreate": timecreate,		
 		"isTop": isTop,
 		"content": content,
@@ -140,19 +157,22 @@ router.post("/edit", async (req, res) => {
 		"fileList": fileList,
 		"fileListSrc": fileListSrc,
 		"checked": checked,
-		"topTime": isTop ? topTime : timecreate
+		"topTime": isTop ? topTime : timecreate,
+		"publisher": publisher,
+		"publisherDepartmentId": publisherDepartmentId,
+		"publisherDepartmentName": publisherDepartmentName
 	}};
 
-	db.updateOne("parent_knowledge", whereStr, updateStr).then((success) => {
+	db.updateOne("party_life", whereStr, updateStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
 	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
 });
 
-/** 家长学校-家教知识-查询列表 */
+/** 二中党建-组织生活-查询列表 */
 router.post("/queryList", async (req, res) => {
 	let { pageNo, pageSize } = req.body;
 	const sortStr = { "isTop": -1, "createtime": -1, "topTime": -1 };
-	await Promise.all([db.findByPage("parent_knowledge", {}, {"content": 0}, sortStr, pageNo, pageSize), db.getTotal("parent_knowledge")]).then((array) => {
+	await Promise.all([db.findByPage("party_life", {}, {"content": 0}, sortStr, pageNo, pageSize), db.getTotal("party_life")]).then((array) => {
 		res.status(200).send({
 			msg: "查询成功",
 			code: 200,

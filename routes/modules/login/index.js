@@ -114,11 +114,19 @@ router.post("/login", async (req, res) => {
 			}
 			res.status(200).send({ msg: MSG, code: 400, result: [] });
 		} else {
-			db.deleteOne("admin_black_list", {ip: ip}).then((cn) => {
+			db.deleteOne("admin_black_list", {ip: ip}).then(async (cn) => {
 				const token = getToken(data[0], tokenExpiredTime);
 				const expires = new Date(Date.now() + tokenExpiredTime * 1000);
 				res.cookie("Authorization", token, {sameSite: "none", secure: true, domain: ".smxsdezx.cn", path: "/", expires: expires});
-				res.status(200).send({ msg: MSG2, code: 200, result: {} });
+
+				const departmentName = await db.find("system_department", {id: data[0].departmentId });
+
+				res.status(200).send({ msg: MSG2, code: 200, result: {
+					username: username,
+					auths: data[0].auths,
+					departmentId: data[0].departmentId,
+					departmentName: departmentName[0].name
+				}});
 			});
 		}
 	});

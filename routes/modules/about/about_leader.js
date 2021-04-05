@@ -11,13 +11,18 @@ const db = new Dao();
 
 /** 二中概况-领导风采-添加 */
 router.post("/add", async (req, res) => {
-	let { headSrc, picSrc, name, job, introduction, order, removeSrc, publisher } = req.body;
+	let { headSrc, picSrc, name, job, introduction, order, removeSrc } = req.body;
 	
 	try { 
 		await utils.removeAssets(removeSrc);
 	} catch (e) { 
 		res.status(200).send({ code: 500, msg: "图片删除失败", result: null });
 	}
+
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
 
 	const insertStr = {
 		"headSrc": headSrc,
@@ -29,7 +34,9 @@ router.post("/add", async (req, res) => {
 		"views": 0,
 		"order": order,
 		"id": uuidv1(),
-		"publisher": publisher
+		"publisher": publisher,
+		"publisherDepartmentId": publisherDepartmentId,
+		"publisherDepartmentName": publisherDepartmentName
 	};
 
 	db.insertOne("about_leader", insertStr).then((success) => {
@@ -54,7 +61,18 @@ router.post("/queryList", async (req, res) => {
 
 /** 二中概况-领导风采-编辑 */
 router.post("/edit", async (req, res) => {
-	let { id, headSrc, picSrc, name, job, introduction, removeSrc, publisher } = req.body;
+	let { id, headSrc, picSrc, name, job, introduction, removeSrc } = req.body;
+
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "about_leader");
+
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "编辑失败，没有权限", code: 500, result: {} });
+    	return;
+    } 
 	
 	try {
 		await utils.removeAssets(removeSrc);
@@ -71,7 +89,9 @@ router.post("/edit", async (req, res) => {
 		"job": job,
 		"introduction": introduction,
 		"id": id,
-		"publisher": publisher
+		"publisher": publisher,
+		"publisherDepartmentId": publisherDepartmentId,
+		"publisherDepartmentName": publisherDepartmentName
 	}};
 	db.updateOne("about_leader", whereStr, updateStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
@@ -98,9 +118,21 @@ router.post("/query", async (req, res) => {
 });
 
 /** 二中概况-领导风采-删除 */
-router.post("/del", (req, res) => {
+router.post("/del", async (req, res) => {
 	let { id, picSrc } = req.body;
 	const delStr = { "id": id };
+
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "about_leader");
+
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "删除失败，没有权限", code: 500, result: {} });
+    	return;
+    } 
+
 	db.deleteOne("about_leader", delStr).then(async (success) => {		
 		try {
 			await utils.removeAssets(picSrc);

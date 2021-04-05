@@ -11,7 +11,12 @@ const db = new Dao();
 
 /** 德育活动-德育标兵-添加 */
 router.post("/add", async (req, res) => {
-	let { headSrc, picSrc, name, job, introduction, order, removeSrc, publisher } = req.body;
+	let { headSrc, picSrc, name, introduction, order, removeSrc } = req.body;
+
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
 	
 	try { 
 		await utils.removeAssets(removeSrc);
@@ -23,12 +28,13 @@ router.post("/add", async (req, res) => {
 		"headSrc": headSrc,
 		"picSrc": picSrc,
 		"name": name,
-		"job": job,
 		"introduction": introduction,
 		"timecreate": moment().format("YYYY-MM-DD HH:mm:ss"),
 		"views": 0,
 		"order": order,
-		"id": uuidv1()
+		"id": uuidv1(),
+		"publisherDepartmentId": publisherDepartmentId,
+		"publisherDepartmentName": publisherDepartmentName
 	};
 	db.insertOne("activity_pacesetter", insertStr).then((success) => {
 		res.status(200).send({ msg: "添加成功", code: 200, result: success });
@@ -52,8 +58,17 @@ router.post("/queryList", async (req, res) => {
 
 /** 德育活动-德育标兵-编辑 */
 router.post("/edit", async (req, res) => {
-	let { id, headSrc, picSrc, name, job, introduction, removeSrc, publisher } = req.body;
+	let { id, headSrc, picSrc, name, introduction, removeSrc } = req.body;
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "activity_pacesetter");
 
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "编辑失败，没有权限", code: 500, result: {} });
+    	return;
+    } 
 	try {
 		await utils.removeAssets(removeSrc);
 	} catch (e) {
@@ -62,15 +77,15 @@ router.post("/edit", async (req, res) => {
 
 	const whereStr = { "id": id };
 	const updateStr = { $set: {
-		"publisher": publisher,
 		"timecreate": moment().format("YYYY-MM-DD HH:mm:ss"),
 		"headSrc": headSrc,
 		"picSrc": picSrc,
 		"name": name,
-		"job": job,
 		"introduction": introduction,
 		"id": id,
-
+		"publisher": publisher,
+		"publisherDepartmentId": publisherDepartmentId,
+		"publisherDepartmentName": publisherDepartmentName
 	}};
 	db.updateOne("activity_pacesetter", whereStr, updateStr).then((success) => {
 		res.status(200).send({ msg: "保存成功", code: 200, result: success });
@@ -100,7 +115,16 @@ router.post("/query", async (req, res) => {
 router.post("/del", async (req, res) => {
 	let { id, picSrc } = req.body;
 	const delStr = { "id": id };
+	const token = req.body.Authorization || req.query.token || req.headers["authorization"];
+    const publisher = utils.getJwtCode(token).username;
+    const publisherDepartmentId = (await utils.getUserData(publisher)).departmentId;
+    const publisherDepartmentName = (await db.find("system_department", {id: publisherDepartmentId}))[0].name;
+    const notHasDelAuth = await utils.notHasDelAuth(token, id, "activity_pacesetter");
 
+    if (notHasDelAuth) {
+    	res.status(200).send({ msg: "删除失败，没有权限", code: 500, result: {} });
+    	return;
+    } 
 	db.deleteOne("activity_pacesetter", delStr).then(async (success) => {		
 		try {
 			await utils.removeAssets(picSrc);

@@ -30,9 +30,54 @@ router.post("/query", async (req, res) => {
 	await Promise.all([db.findByPage("admin_user", whereStr, limitStr, sortStr, pageNo, pageSize), db.getTotal("admin_user"), db.find("system_department", {})]).then((array) => {
 		let deparmentMap = new Map();
 		array[2].forEach((department) => deparmentMap.set(department.id, department.name));
-		array[0].forEach((account) => account.departmentName = deparmentMap.get(account.departmentId));
+		array[0].forEach((account) => {
+			account.departmentName = deparmentMap.get(account.departmentId)
+			account.authNames = account.auths.map((auth) => authMap.get(auth));
+		});
 		res.status(200).send({ msg: "查询成功", code: 200, data: { list: array[0], total: array[1], departments: array[2]}});
 	}).catch((err) => res.status(200).send({ msg: err.message, code: 500 }));	
+});
+
+/** 网站管理-账号管理-根据ID查询单条 */
+router.post("/queryById", async (req, res) => {
+	let { id } = req.body;
+	const findStr = { "uid": id };
+	let res1 = await db.find("admin_user", findStr).catch((err) => {
+		res.status(200).send({ msg: err, code: 500});
+	});
+	const { password, ...accountData } = res1[0];
+	res.status(200).send({
+		msg: "查询成功",
+		code: 200,
+		data: accountData
+	});
+});
+
+/** 网站管理-账号管理-密码修改 */
+router.post("/edit", async (req, res) => {
+	let { id, password } = req.body;
+	let whereStr = { "uid": id };
+	if (!password) {
+		res.status(200).send({ code: 500, msg: "添加失败，密码不能为空" });
+		return;
+	}
+	if (!/[a-z]/g.test(password) || !/[A-Z]/g.test(password) || !/[0-9]/g.test(password) || !/[\~\!\@\#\$\%\^\&\*\(\)\_\+\=\-\<\>\?]/.test(password)) {
+		res.status(200).send({ code: 500, msg: "添加失败，密码不合法" });
+		return;
+	}
+	if (password.length < 6 || password.length > 18) {
+		res.status(200).send({ code: 500, msg: "添加失败，密码不合法" });
+		return;
+	}
+	let updateStr = { $set: {
+		"password": CryptoJS.SHA256(utils.encodeBase64(password) + id).toString(),
+	}};
+
+
+	db.updateOne("admin_user", whereStr, updateStr).then((success) => {
+		res.status(200).send({ msg: "保存成功", code: 200, result: success });
+	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
+
 });
 
 router.post("/getAccountData", async (req, res) => {
@@ -48,6 +93,21 @@ router.post("/getAccountData", async (req, res) => {
 	};
 });
 
+router.post("/del", async (req, res) => {
+	let { id } = req.body;
+	const res1 = await await db.find("admin_user", { uid: id });
+
+	if (res1[0].departmentId === 0 && res1[0].username) {
+		res.status(200).send({ code: 500, msg: "无法删除系统管理员" });
+		return;
+	}
+
+	const delStr = { "uid": id };
+	db.deleteOne("admin_user", delStr).then(async (success) => {
+		res.status(200).send({ msg: "删除成功", code: 200, result: success });		
+	}).catch((err) => res.status(200).send({ msg: err, code: 500 }));
+});
+
 /** 网站管理-账号管理-添加 */
 router.post("/add", async (req, res) => {
 	const { username, password, auths, departmentId } = req.body;
@@ -59,8 +119,9 @@ router.post("/add", async (req, res) => {
 	}
 	if (!password) {
 		res.status(200).send({ code: 500, msg: "添加失败，密码不能为空" });
+		return;
 	}
-	if (!departmentId) {
+	if (!departmentId && departmentId !== 0) {
 		res.status(200).send({ code: 500, msg: "添加失败，科室不能为空" });
 		return;
 	}
@@ -236,122 +297,97 @@ const authMenu = [
 		icon: "el-icon-star-off",
 	},
 	{
+		title: "二中党建",
+		code: "admin_party",
+		path: "admin-party",
+		icon: "el-icon-star-off",
+		children: [
+			{
+				title: "理论学习",
+				path: "theory-list",
+				code: "admin_party_theory"
+			},
+			{
+				title: "组织建设",
+				path: "construct-list",
+				code: "admin_party_construct"
+			},
+			{
+				title: "组织生活",
+				path: "life-list",
+				code: "admin_party_life"
+			},
+			{
+				title: "制度建设",
+				path: "institution-list",
+				code: "admin_party_institution"
+			},
+			{
+				title: "台账管理",
+				path: "book-list",
+				code: "admin_party_book"
+			},
+			{
+				title: "活动项目",
+				path: "project-list",
+				code: "admin_party_project"
+			},
+			{
+				title: "阵地建设",
+				path: "position-list",
+				code: "admin_party_position"
+			}
+		]
+	},
+	{
 		title: "职工之家",
 		code: "admin_union",
 		path: "admin-union",
 		icon: "el-icon-star-off"
 	},
 	{
+		title: "二中创建",
+		code: "admin_establish",
+		path: "admin-establish",
+		icon: "el-icon-star-off",
+		children: [
+			{
+				title: "创建会议",
+				router: "meeting-list",
+				code: "admin_establish_meeting"
+			},
+			{
+				title: "学习大讲堂",
+				router: "classroom-list",
+				code: "admin_establish_classroom"
+			},
+			{
+				title: "志愿者风采",
+				router: "volunteer-list",
+				code: "admin_establish_volunteer"
+			},
+			{
+				title: "结对帮扶",
+				router: "two-list",
+				code: "admin_establish_two"
+			},
+			{
+				title: "新时代文明实践活动",
+				router: "practice-list",
+				code: "admin_establish_practice"
+			},
+			{
+				title: "文明之声",
+				router: "voice-list",
+				code: "admin_establish_voice"
+			}
+		]
+	},
+	{
 		title: "二中安法",
 		code: "admin_law",
 		path: "admin-law",
 		icon: "el-icon-star-off"
-	},
-	{
-		title: "新闻动态",
-		code: "admin_news",
-		icon: "el-icon-notebook-2",
-		children: [
-			{
-				title: "新闻快讯",
-				path: "campus-list",
-				code: "admin_news_campus"
-			},
-			{
-				title: "通知公告",
-				path: "notice-list",
-				code: "admin_news_notice"
-			},
-			{
-				title: "媒体报道",
-				path: "media-list",
-				code: "admin_news_media"
-			},
-			{
-				title: "招生信息",
-				path: "enroll-list",
-				code: "admin_news_enroll"
-			}
-		]
-	},
-	{
-		title: "学生天地",
-		code: "admin_student",
-		path: "admin-student",
-		icon: "el-icon-basketball",
-		children: [
-			{
-				title: "班级活动",
-				path: "activity-list",
-				code: "admin_student_activity"
-			},
-			{
-				title: "荣誉表彰",
-				path: "prize-list",
-				code: "admin_student_prize"
-			},
-			{
-				title: "纪律卫生",
-				path: "flag-list",
-				code: "admin_student_flag"
-			},
-			{
-				title: "学生作品",
-				path: "exhibition-list",
-				code: "admin_student_exhibition"
-			},
-			{
-				title: "毕业留念",
-				path: "graduation-list",
-				code: "admin_student_graduation"
-			}
-		]
-	},
-	{
-		title: "家长学校",
-		code: "admin_parent",
-		path: "admin-parent",
-		icon: "el-icon-user",
-		children: [
-			{
-				title: "活动掠影",
-				path: "pratice-list",
-				code: "admin_parent_pratice"
-			},
-			{
-				title: "家教知识",
-				path: "knowledge-list",
-				code: "admin_parent_knowledge"
-			},
-			{
-				title: "学校沟通",
-				path: "communication-list",
-				code: "admin_parent_communication"
-			}
-		]
-	},
-	{
-		title: "幸福教育",
-		code: "admin_happy",
-		path: "admin-happy",
-		icon: "el-icon-ship",
-		children: [
-			{
-				title: "幸福理念",
-				path: "idea-list",
-				code: "admin_happy_idea"
-			},
-			{
-				title: "幸福感言",
-				path: "speech-list",
-				code: "admin_happy_speech"
-			},
-			{
-				title: "幸福教育活动",
-				path: "exercise-list",
-				code: "admin_happy_exercise"
-			}
-		]
 	},
 	{
 		title: "联系我们",
@@ -381,58 +417,47 @@ const authMenu = [
 ];
 
 const authMap = new Map([
-    ["admin_bg", "背景封面"],
-    ["admin_about", "关于二中"],
-    ["admin_about_profile", "学校简介"],
-    ["admin_about_leader", "学校领导"],
-    ["admin_about_proverb", "校长寄语"],
-    ["admin_about_organization", "内部机构"],
-    ["admin_about_team", "师资概况"],
-    ["admin_about__outstanding", "名师风采"],
-    ["admin_about_honor", "学校荣誉"],
-    ["admin_about_history", "二中校史"],
-    ["admin_about_landscape", "校园风貌"],
-    ["admin_news", "新闻动态"],
-    ["admin_news_campus", "新闻快讯"],
-    ["admin_news_notice", "通知公告"],
-    ["admin_news_media", "媒体报道"],
-    ["admin_news_enroll", "招生信息"],
-    ["admin_group", "党团工会"],
-    ["admin_group_party", "党建动态"],
-    ["admin_group_ccyl", "团建工作"],
-    ["admin_group_union", "工会活动"],
-    ["admin_group_excellent", "创优争先"],
-    ["admin_education", "教学科研"],
-    ["admin_education_research", "教研动态"],
-    ["admin_education_case", "教学案例"],
-    ["admin_education_summary", "教学反思"],
-    ["admin_education_ppt", "教学课件"],
-    ["admin_education_paper", "试题集锦"],
-    ["admin_education_feature", "特色教育"],
-    ["admin_student", "学生天地"],
-    ["admin_student_activity", "班级活动"],
-    ["admin_student_prize", "荣誉表彰"],
-    ["admin_student_flag", "纪律卫生"],
-    ["admin_student_exhibition", "学生作品"],
-    ["admin_student_graduation", "毕业留念"],
-    ["admin_parent", "家长学校"],
-    ["admin_parent_pratice", "活动掠影"],
-    ["admin_parent_knowledge", "家教知识"],
-    ["admin_parent_communication", "学校沟通"],
-    ["admin_school", "七彩校园"],
-    ["admin_school_display", "活动报道"],
-    ["admin_happy", "幸福教育"],
-    ["admin_happy_idea", "幸福理念"],
-    ["admin_happy_speech", "幸福感言"],
-    ["admin_happy_exercise", "幸福教育活动"],
-    ["admin_service", "为您服务"],
-    ["admin_service_guide", "办事指南"],
-    ["admin_service_guarantee", "后勤保障"],
-    ["admin_service_computer", "电教知识"],
-    ["admin_service_contact", "联系我们"],
-    ["admin_system", "网站管理"],
-    ["admin_system_department", "科室管理"],
-    ["admin_system_accoumnt", "账号管理"]
+    [ "admin_bg", "背景封面" ],
+    [ "admin_about", "关于二中" ],
+    [ "admin_about_leader", "领导风采" ],
+    [ "admin_about_profile", "学校简介" ],
+    [ "admin_about_concept", "二中校史" ],
+    [ "admin_about_proverb", "校长寄语" ],
+    [ "admin_about_honor", "学校荣誉" ],
+    [ "admin_education", "教研动态" ],
+    [ "admin_activity", "德育活动" ],
+    [ "admin_activity_planning", "德育规划" ],
+    [ "admin_activity_pacesetter", "德育标兵" ],
+    [ "admin_activity_health", "健康教育" ],
+    [ "admin_activity_culture", "班级文化" ],
+    [ "admin_activity_teacher", "班主任专栏" ],
+    [ "admin_activity_gym", "体艺活动" ],
+    [ "admin_training", "校本研修" ],
+    [ "admin_service", "为您服务" ],
+    [ "admin_service_guarantee", "后勤保障" ],
+    [ "admin_service_computer", "电教知识" ],
+    [ "admin_group", "二中团建" ],
+    [ "admin_party", "二中党建" ],
+    [ "admin_party_theory", "理论学习" ],
+    [ "admin_party_construct", "组织建设" ],
+    [ "admin_party_life", "组织生活" ],
+    [ "admin_party_institution", "制度建设" ],
+    [ "admin_party_book", "台账管理" ],
+    [ "admin_party_project", "活动项目" ],
+    [ "admin_party_position", "阵地建设" ],
+    [ "admin_union", "职工之家" ],
+    [ "admin_establish", "二中创建" ],
+    [ "admin_establish_meeting", "创建会议" ],
+    [ "admin_establish_classroom", "学习大讲堂" ],
+    [ "admin_establish_volunteer", "志愿者风采" ],
+    [ "admin_establish_two", "结对帮扶" ],
+    [ "admin_establish_practice", "新时代文明实践活动" ],
+    [ "admin_establish_voice", "文明之声" ],
+    [ "admin_law", "二中安法" ],
+    [ "admin_service_contact", "联系我们" ],
+    [ "admin_system", "网站管理" ],
+    [ "admin_system_department", "科室管理" ],
+    [ "admin_system_accoumnt", "账号管理" ]
 ]);
 
 module.exports = router;
