@@ -6,8 +6,7 @@ const fs = require("fs");
 const bodyParser = require("body-parser");
 const ip = require("ip");
 const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-var fileStreamRotato = require("file-stream-rotator");
+const logger = require("./tools/log.js");
 require("./config/global.js");
 
 
@@ -16,16 +15,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(bodyParser.json({limit : "50000000kb"}));  
 
-
-// app.use(logger("dev", (tokens, req, res) => {
-//     [
-//         tokens.method(req, res),
-//         // tokens.url(req, res),
-//         // tokens.status(req, res),
-//         // tokens.res(req, res, 'content-length'), '-',
-//         // tokens['response-time'](req, res), 'ms'
-//     ].join(' ')
-// }));
+app.use(logger.accessLog);
+app.use(logger.opLog);
 
 
 

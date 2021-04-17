@@ -394,7 +394,7 @@ const authMenu = [
 		path: "admin_contact",
 		icon: "el-icon-phone",
 		path: "admin-contact",
-		code: "admin_service_contact"
+		code: "admin_contact"
 	},
 	{
 		title: "网站管理",
@@ -410,7 +410,7 @@ const authMenu = [
 			{
 				title: "账号管理",
 				path: "account-list",
-				code: "admin_system_accoumnt"
+				code: "admin_system_account"
 			}
 		]
 	}
@@ -454,10 +454,10 @@ const authMap = new Map([
     [ "admin_establish_practice", "新时代文明实践活动" ],
     [ "admin_establish_voice", "文明之声" ],
     [ "admin_law", "二中安法" ],
-    [ "admin_service_contact", "联系我们" ],
+    [ "admin_contact", "联系我们" ],
     [ "admin_system", "网站管理" ],
     [ "admin_system_department", "科室管理" ],
-    [ "admin_system_accoumnt", "账号管理" ]
+    [ "admin_system_account", "账号管理" ]
 ]);
 
 module.exports = router;
