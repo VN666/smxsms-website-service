@@ -134,8 +134,8 @@ const LogJson = [
 	{ url: "/api/system/department/del", opCode: "0", opType: "删除", module: "网站管理-部门管理", func: (body) => "删除id:" + body.id },
 	{ url: "/api/system/department/edit", opCode: "2", opType: "编辑", module: "网站管理-部门管理", func: (body) => "编辑id:" + body.id },
 	{ url: "/api/system/account/add", opCode: "1", opType: "添加", module: "网站管理-账号管理", func: (body) => "添加:" + body.username },
-	{ url: "/api/system/account/edit", opCode: "0", opType: "删除", module: "网站管理-账号管理", func: (body) => "编辑id:" + body.id },
-	{ url: "/api/system/account/del", opCode: "2", opType: "编辑", module: "网站管理-账号管理", func: (body) => "删除id:" + body.id },	
+	{ url: "/api/system/account/edit", opCode: "2", opType: "编辑", module: "网站管理-账号管理", func: (body) => "编辑id:" + body.id },
+	{ url: "/api/system/account/del", opCode: "0", opType: "删除", module: "网站管理-账号管理", func: (body) => "删除id:" + body.id },	
 	{ url: "/api/contact/update", opCode: "2", opType: "编辑", module: "联系我们", func: () => "编辑" },
 	{ url: "/api/login/login", opCode: "5", opType: "登录", module: "登录", func: (body) => body.username + "登录" }
 ]

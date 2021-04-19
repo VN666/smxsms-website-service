@@ -1,15 +1,15 @@
-cd /Users/vn_666/Desktop/project/smxsms-website-service/bin && zip -r output.zip ../* -x "../node_modules/*" -x "../public/*" -x "../logs/*";
+cd /Users/vn_666/Desktop/project/smxsms-website-service/bin && zip -r output.zip ../* -x "../node_modules/*" -x "../public/*" -x "../logs/*" -x "../start.ssh";
 
 step1=$(sshpass -p 91wealTH07 scp -r /Users/vn_666/Desktop/project/smxsms-website-service/bin/output.zip root@39.100.206.111:/app/smxsdezx-node);
 
 sshpass -p 91wealTH07 ssh root@39.100.206.111 "
 cd /app/smxsdezx-node;
-ls | grep -v node_modules | grep -v output.zip | grep -v public | grep -v logs | xargs rm -rf;
+ls | grep -v node_modules | grep -v output.zip | grep -v public | grep -v logs | grep -v start.ssh | xargs rm -rf;
 unzip output.zip;
 rm -rf output.zip;
 #pm2 restart smxsdezx-node;
 echo '
-
+ |
                  ┌─┐       ┌─┐
               ┌──┘ ┴───────┘ ┴──┐
               │                 │
