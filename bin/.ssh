@@ -31,7 +31,7 @@ echo '
                     │ ─┤ ─┤       │ ─┤ ─┤
                     └──┴──┘       └──┴──┘
   当你看到这只神兽时，说明已经部署成功了，请移驾：
-              https://www-pre.hikyun.com
+              https://www.smxsdezx.com
 ';
 "
 rm -rf output.zip;

@@ -223,7 +223,7 @@ const authMenu = [
 		]
 	},
 	{
-		title: "教研动态",
+		title: "教学动态",
 		code: "admin_education",
 		path: "admin-education",
 		icon: "el-icon-data-analysis"
@@ -411,6 +411,11 @@ const authMenu = [
 				title: "账号管理",
 				path: "account-list",
 				code: "admin_system_account"
+			},
+			{
+				title: "操作日志",
+				path: "log-list",
+				code: "admin_system_log"
 			}
 		]
 	}
@@ -424,7 +429,7 @@ const authMap = new Map([
     [ "admin_about_concept", "二中校史" ],
     [ "admin_about_proverb", "校长寄语" ],
     [ "admin_about_honor", "学校荣誉" ],
-    [ "admin_education", "教研动态" ],
+    [ "admin_education", "教学动态" ],
     [ "admin_activity", "德育活动" ],
     [ "admin_activity_planning", "德育规划" ],
     [ "admin_activity_pacesetter", "德育标兵" ],
@@ -457,7 +462,8 @@ const authMap = new Map([
     [ "admin_contact", "联系我们" ],
     [ "admin_system", "网站管理" ],
     [ "admin_system_department", "科室管理" ],
-    [ "admin_system_account", "账号管理" ]
+    [ "admin_system_account", "账号管理" ],
+    [ "admin_system_log", "操作日志" ]
 ]);
 
 module.exports = router;

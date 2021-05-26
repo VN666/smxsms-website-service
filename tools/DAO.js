@@ -3,6 +3,8 @@ const assert = require("assert");
 
 // const Url = global.API.MONGO_URL;
 const Url = "mongodb://root:%4091wealTH1314!@127.0.0.1:9117";
+// const Url = "mongodb%3A%2F%2Froot%3A%4091wealTH1314!%40127.0.0.1%3A9117";
+// const Url = "mongodb://root:@91wealTH1314!@127.0.0.1:9117";
 const DbName = "smxsdezx";
 
 function Dao () {
